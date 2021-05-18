@@ -1,0 +1,41 @@
+---
+title: "CapstoneHousePrices"
+author: "Jonathan Ostler"
+date: "17/05/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+One of the most popular competitions on kaggle is the House Prices: Advanced Regression Techniques. The original data comes from the publication Dean De Cock "Ames, Iowa: Alternative to the Boston Housing Data as an End of Semester Regression Project", Journal of Statistics Education, Volume 19, Number 3 (2011). Recently a 'demonstration' notebook has been published "First place is meaningless in this way!" that extracts the 'solution' from the full dataset. Now that the 'solution' is readily available the possibility has opened for people to reproduce the competition at home without any daily submission limit. This will open up the possibility of experimenting with advanced techniques such as pipelines with/or various estimators/models in the same notebook, extensive hyper-parameter tuning etc. And all without the risk of 'upsetting' the public leaderboard. Simply download this solution.csv file and import it into your script or notebook and evaluate the Root-Mean-Squared-Error (RMSE) between the logarithm of the predicted value and the logarithm of the data in this file.
+
+
+
+
+
+
+### Appendix
+
+#### Boruta
+Re: Boruta: this paper  https://www.jstatsoft.org/index.php/jss/article/view/v036i11/v36i11.pdf    explains the underlying algorithm. This is a high-level outline of the algorithm:
+1) A copy is made of each explanatory variable. The values in these copies are permuted to remove any correlation with the target variable. The copies are called Shadow variables.
+2) A random forest model is fitted on this expanded data set.
+3) For each variable (the original and Shadow) the Z-score of the loss in accuracy is calculated. The Z-score is the average loss divided by the standard deviation.
+4) Keep track of the original attributes z-score that score higher than the maximum of z-score of the shadow attributes.
+
+Repeat the above steps numerous times. Original attributes that are significantly--statistically--higher then the maximum z-score of shadow attributes are deemed relevant to the prediction. Attributes that are significantly below the maximum z-score of shadow attributes are deemed not relevant.
+
+#### LASSO Regression
+Explain what it is
+
+#### Random Forest
+Explain what a random forest is
+
+#### XGBoost
+Explain what a XGBoost is
+
+
+

@@ -47,7 +47,6 @@ library(lars)
 dl <- read_csv("data/train.csv")   #Read in as factors???
 train <- dl
 
-
 ###Initial Data Clean
 
 #Rename a couple of columns
@@ -123,23 +122,23 @@ Num <- jTraining[,Num]
 numberCols <- names(Num)
 numberCols <- numberCols[-1] #remove Id column
 
+
+
+#################################
+#################################
 #Huge amount of factoring and manipulating - is this necessary????? Look at comments section
 # If read in as factors, no need to convert to numbers????
 # train$heatqual <- as.integer(train$heatqual)
-
+#Reduced the changes to 5 variables - see a bit later
 #################################
 #################################
 
 ###Explore Data
 
-#Exploring dataset could be difficult when the quantity of variables is quite huge. Therefore, I mainly focused on the exploration of numeric
-#variables in this report. The descriptive analysis of dummy variables are mostly finished by drawing box plots. Some dummy variables, like 'Street',
-#are appeared to be ineffective due to the extreme box plot. The numeric variables are sorted out before turning dummy variables into numeric form.
-
-
-
 ##Boruta Feature Importance
-#Check which data source is used
+#Exploring dataset could be difficult when the number of variables is as large as it is (Id + 79 + SalePrice).
+#Start with a Boruta Feature Importance analysis to show which items are deemed important
+
 #Determine data type for each candidate explanatory attributes
 ID.VAR <- "Id"
 TARGET.VAR <- "SalePrice"
@@ -188,42 +187,143 @@ getSelectedAttributes(bor.results)
 plot(bor.results)
 
 #Detailed results for each candidate explanatory attributes.
-arrange(cbind(attr=rownames(attStats(bor.results)), attStats(bor.results)),desc(medianImp))
+impTable <- arrange(cbind(attr=rownames(attStats(bor.results)), attStats(bor.results)),desc(medianImp))
+impTable
 
 #Extract the three types of importance
 confirmed_tib <- getSelectedAttributes(bor.results, withTentative = FALSE)
 tent_n_confirmed_tib <- getSelectedAttributes(bor.results, withTentative = TRUE)
 
-confirmed.df <- as.data.frame(confirmed)
+confirmed.df <- as.data.frame(confirmed_tib)
 tent_n_confirmed.df <- as.data.frame(tent_n_confirmed_tib)
 all.df <- as.data.frame(candidate.features)
 
-tentative <- tent_n_confirmed.df %>% anti_join(confirmed.df, by=c("tent_n_confirmed_tib"="confirmed"))
+tentative <- tent_n_confirmed.df %>% anti_join(confirmed.df, by=c("tent_n_confirmed_tib"="confirmed_tib"))
 rejected <- all.df %>% anti_join(tent_n_confirmed.df, by=c("candidate.features" = "tent_n_confirmed_tib"))
 confirmed <- confirmed.df
 
+#Lot of dependents therefore, I mainly focused on the exploration of numeric
+#variables in this report. The descriptive analysis of dummy variables are mostly finished by drawing box plots. Some dummy variables, like 'Street',
+#are appeared to be ineffective due to the extreme box plot. The numeric variables are sorted out before turning dummy variables into numeric form.
+
+#All original numeric values
+correlations <- cor(jTraining[, numberCols],use="everything")
+corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+
+#13 of the 35 (36) variables are of interest (high correlations with SalePrice)
+NamesInterest1 <- names(which(correlations["SalePrice", ] > 0.35))
+NamesInterest1 <- NamesInterest1[!NamesInterest1 %in% "SalePrice"] #Remove SalePrice
+
+#Split the numeric values coming from the Boruta analysis
+numeric_confirmed <- intersect(confirmed_tib, numberCols)
+numeric_confirmed_SalePrice <- c(numeric_confirmed, "SalePrice")
+correlations <- cor(jTraining[, numeric_confirmed_SalePrice],use="everything") #Columns that were originally numeric
+corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+
+#12 of the 23 (24) variables are of interest (high correlations with SalePrice)
+NamesInterest2 <- names(which(correlations["SalePrice", ] > 0.35))
+NamesInterest2 <- NamesInterest2[!NamesInterest2 %in% "SalePrice"] #Remove SalePrice
+
+#From the Boruta analysis, of the top 20 variables only 5 are character variables
+#Look at the important character variables
+charCols <- attr.data.types$character
+char_confirmed <- intersect(confirmed_tib, charCols)
+
+
+##############################################################
+#REMEMBER TO Do THE FOLLOWING IN THE TESTING AND FINAL SET
+##############################################################
+
+#Let's convert those to factors and then run one more set of correlations
+#GarageType
+price <- jTraining %>%
+  group_by(GarageType) %>%
+  summarize(avg=mean(SalePrice, na.rm=T)) %>%
+  arrange(desc(avg))
+
+jTraining$jGarageType[jTraining$GarageType %in% c("BuiltIn", "Attchd")] <- 3
+jTraining$jGarageType[jTraining$GarageType %in% c("Basment", "Detchd", "2Types")] <- 2
+jTraining$jGarageType[jTraining$GarageType %in% c("CarPort", "NoGarage")] <- 1
+
+#KitchenQual
+price <- jTraining %>%
+  group_by(KitchenQual) %>%
+  summarize(avg=mean(SalePrice, na.rm=T)) %>%
+  arrange(desc(avg))
+
+jTraining$jKitchenQual[jTraining$KitchenQual == "Ex"] <- 4
+jTraining$jKitchenQual[jTraining$KitchenQual == "Gd"] <- 3
+jTraining$jKitchenQual[jTraining$KitchenQual == "TA"] <- 2
+jTraining$jKitchenQual[jTraining$KitchenQual == "Fa"] <- 1
+jTraining$jKitchenQual[jTraining$KitchenQual == "Po"] <- 0
+
+#ExterQual
+price <- jTraining %>%
+  group_by(ExterQual) %>%
+  summarize(avg=mean(SalePrice, na.rm=T)) %>%
+  arrange(desc(avg))
+
+jTraining$jExterQual[jTraining$ExterQual == "Ex"] <- 4
+jTraining$jExterQual[jTraining$ExterQual == "Gd"] <- 3
+jTraining$jExterQual[jTraining$ExterQual == "TA"] <- 2
+jTraining$jExterQual[jTraining$ExterQual == "Fa"] <- 1
+jTraining$jExterQual[jTraining$ExterQual == "Po"] <- 0
+
+#MSZoning
+price <- jTraining %>%
+        group_by(MSZoning) %>%
+        summarize(avg=mean(SalePrice, na.rm=T)) %>%
+        arrange(desc(avg))
+
+jTraining$jMSZoning[jTraining$MSZoning == "FV"] <- 4
+jTraining$jMSZoning[jTraining$MSZoning == "RL"] <- 3
+jTraining$jMSZoning[jTraining$MSZoning %in% c("RH","RM")] <- 2
+jTraining$jMSZoning[jTraining$MSZoning == "C (all)"] <- 1
+
+#Neighborhood
+price <- jTraining %>%
+  group_by(Neighborhood) %>%
+  summarize(avg=mean(SalePrice, na.rm=T)) %>%
+  arrange(desc(avg))
+
+price_hi <- filter(price, avg >= 200000)
+price_med <- filter(price, avg >= 140000 & avg < 200000)
+price_lo <- filter(price, avg < 140000)
+
+jTraining$jNeighborhood[jTraining$Neighborhood %in% price_hi$Neighborhood] <- 3
+jTraining$jNeighborhood[jTraining$Neighborhood %in% price_med$Neighborhood] <- 2
+jTraining$jNeighborhood[jTraining$Neighborhood %in% price_lo$Neighborhood] <- 1
+
+#Look at the correlations for the character variables
+charCols <- c("jGarageType", "jKitchenQual", "jExterQual", "jMSZoning", "jNeighborhood", "SalePrice")
+correlations <- cor(jTraining[, charCols],use="everything")
+corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+
+#Fun with Real Estate commentary
+#Another thing I want to do is build some interactions that may be worth looking at. 
+#For example, if the house has a pool, is it more important that it has a big deck, or something like that? 
+#I used correlation visuals like this to do it- you can choose what you'd want to put in and how many variations
+#you want to make.
+
+#XGB commentary on cor
+#'OverallQual','TotalBsmtSF','GarageCars' and 'GarageArea' have relative strong correlation with each other.
+#Therefore, as an example, we plot the correlation among those four variables and SalePrice.
+#Jon - ADD OTHERS IN - 1stFlrSF and GrLivArea
+
+#Come up with an overall list of variable we will include...
+#Confirmed, numeric plus 5 character ones
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##3 correlation plots from Fun With + 1 from XGBoost
 
 ##Simple scatterplot matrix (pairs) + 1 from XGBoost (pairs)
+
+
+
+
+
+
+
 
 ##3 scatterplot charts - not sure if they really show anything!!
 

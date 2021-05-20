@@ -471,14 +471,14 @@ rmse_results %>% knitr::kable()
 ##Linear Model - Important Variables
 #Finally, we have our data and can build some models. Since our outcome is a continuous numeric variable, 
 #we want a linear model, not a GLM.
-lm_model <- lm(SalePrice ~ ., data=jTraining[, c(NamesInterest1, charCols , "SalePrice")])
-summary(lm_model)
+model_lm <- lm(SalePrice ~ ., data=jTraining[, c(NamesInterest1, charCols , "SalePrice")])
+summary(model_lm)
 
-prediction_lm <- predict(lm_model, jTesting, type="response")
+prediction_lm <- predict(model_lm, jTesting, type="response")
 
 #The R Square is not bad, and all variables pass the Hypothesis Test. The diagonsis of residuals is also not bad. The diagnosis can be viewed below.
 layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE))
-plot(lm_model)
+plot(model_lm)
 par(mfrow=c(1,1))
 
 #RMSE
@@ -503,19 +503,19 @@ Independent_variable <- as.matrix(Independent_variable)
 Dependent_Variable <- jTraining[, "SalePrice"]
 Dependent_Variable<- as.matrix(Dependent_Variable)
 
-laa <- lars(Independent_variable , Dependent_Variable,type = 'lasso')
-plot(laa)
+model_lars <- lars(Independent_variable , Dependent_Variable,type = 'lasso')
+plot(model_lars)
 
 #The plot is messy as the quantity of variables is intimidating. Despite that, we can still use R to find out the model with least multicollinearity. The selection 
 #procedure is based on the value of Marrow's cp, an important indicator of multicollinearity. The prediction can be done by the script-chosen best step and RMSE can be used
 #to assess the model.
-best_step <- laa$df[which.min(laa$Cp)]
+best_step <- model_lars$df[which.min(model_lars$Cp)]
 
 Testing_variable <- jTesting[, numberCols]
 Testing_variable$SalePrice <- NULL   #Remove SalePrice
 Testing_variable <- as.matrix(Testing_variable)
 
-prediction_lars <- predict.lars(laa,newx = Testing_variable, s=best_step, type= "fit")
+prediction_lars <- predict.lars(model_lars , newx = Testing_variable, s=best_step, type= "fit")
 
 #RMSE
 rmse_lars <- rmse(log(jTesting$SalePrice),log(prediction_lars$fit))
@@ -536,19 +536,19 @@ Independent_variable_2 <- as.matrix(Independent_variable_2)
 Dependent_Variable_2 <- jTraining[, "SalePrice"]
 Dependent_Variable_2 <- as.matrix(Dependent_Variable_2)
 
-laa_2 <- lars(Independent_variable_2 , Dependent_Variable_2 , type = 'lasso')
-plot(laa_2)
+model_lars_2 <- lars(Independent_variable_2 , Dependent_Variable_2 , type = 'lasso')
+plot(model_lars_2)
 
 #The plot is messy as the quantity of variables is intimidating. Despite that, we can still use R to find out the model with least multicollinearity. The selection 
 #procedure is based on the value of Marrow's cp, an important indicator of multicollinearity. The prediction can be done by the script-chosen best step and RMSE can be used
 #to assess the model.
-best_step_2 <- laa_2$df[which.min(laa_2$Cp)]
+best_step_2 <- model_lars_2$df[which.min(model_lars_2$Cp)]
 
 Testing_variable_2 <- jTesting[, c(NamesInterest1, charCols)]
 #Testing_variable_2$SalePrice <- NULL   #Remove SalePrice
 Testing_variable_2 <- as.matrix(Testing_variable_2)
 
-prediction_lars_2 <- predict.lars(laa_2,newx = Testing_variable_2, s=best_step_2, type= "fit")
+prediction_lars_2 <- predict.lars(model_lars_2 , newx = Testing_variable_2, s=best_step_2, type= "fit")
 
 #RMSE
 rmse_lars_2 <- rmse(log(jTesting$SalePrice),log(prediction_lars_2$fit))
@@ -562,7 +562,23 @@ rmse_results <- bind_rows(rmse_results,
 rmse_results %>% knitr::kable()
 
 ##Random Forest
+#Let's try training the model with an RF.
+#Let's use all the variables and see how things look, since randomforest does its own feature selection.
+model_rf <- randomForest(SalePrice ~ ., data=jTraining)
+
+# Predict using the test set
+prediction_rf <- predict(model_rf, jTesting)
+
 #RMSE
+rmse_rf <- rmse(log(jTesting$SalePrice), log(prediction_rf))
+
+#Add to tally
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(Model = "Random Forest",
+                                     "Log RMSE" = rmse_rf ))
+
+#Make table pretty
+rmse_results %>% knitr::kable()
 
 ##XGBoost
 #RMSE

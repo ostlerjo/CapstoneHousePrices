@@ -581,17 +581,85 @@ rmse_results <- bind_rows(rmse_results,
 rmse_results %>% knitr::kable()
 
 ##XGBoost
+
+#Assemble and format the data
+XGBtraining <- jTraining
+XGBtesting <- jTesting
+
+XGBtraining$log_SalePrice <- log(XGBtraining$SalePrice)
+XGBtesting$log_SalePrice <- log(XGBtesting$SalePrice)
+
+#Create matrices from the data frames
+XGBtrainingData <- as.matrix(XGBtraining, rownames.force=NA)
+XGBtestingData <- as.matrix(XGBtesting, rownames.force=NA)
+  
+#Turn the matrices into sparse matrices
+XGBtrainingSparse <- as(XGBtrainingData, "sparseMatrix")
+XGBtestingSparse <- as(XGBtestingData, "sparseMatrix")
+  
+#####
+#Cross Validate the model
+
+#Check out the col names to then select the ones we want
+colnames(XGBtrainingSparse)
+vars <- c(NamesInterest1, charCols, "SalePrice")
+
+#Convert to xgb.DMatrix format
+XGBtrainingD <- xgb.DMatrix(data = XGBtrainingSparse[,vars], label = XGBtrainingSparse[,"SalePrice"]) 
+
+#Cross validate the model
+cv.sparse <- xgb.cv(data = XGBtrainingD,
+                    nrounds = 600,
+                    min_child_weight = 0,
+                    max_depth = 10,
+                    eta = 0.02,
+                    subsample = .7,
+                    colsample_bytree = .7,
+                    booster = "gbtree",
+                    eval_metric = "rmse",
+                    verbose = TRUE,
+                    print_every_n = 50,
+                    nfold = 4,
+                    nthread = 2,
+                    objective="reg:linear")
+
+#Train the model
+#Choose the parameters for the model
+param <- list(colsample_bytree = .7,
+              subsample = .7,
+              booster = "gbtree",
+              max_depth = 10,
+              eta = 0.02,
+              eval_metric = "rmse",
+              objective="reg:linear")
+
+#Train the model using those parameters
+bstSparse <-
+  xgb.train(params = param,
+            data = XGBtrainingD,
+            nrounds = 600,
+            watchlist = list(train = XGBtrainingD),
+            verbose = TRUE,
+            print_every_n = 50,
+            nthread = 2)
+
+#Convert Testing Sparse to xgb.DMatrix format
+XGBtestingD <- xgb.DMatrix(data = XGBtestingSparse[,vars])
+
+#Column names must match the inputs EXACTLY
+#Make the prediction based on the half of the training data set aside
+prediction_XGB <- predict(bstSparse, XGBtestingD)
+
 #RMSE
+rmse_XGB <- rmse(log(jTesting$SalePrice), log(prediction_XGB))
 
+#Add to tally
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(Model = "XGBoost",
+                                     "Log RMSE" = rmse_XGB ))
 
-
-
-
-
-
-
-
-
+#Make table pretty
+rmse_results %>% knitr::kable()
 
 ###Validate data
 

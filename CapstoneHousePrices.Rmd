@@ -36,6 +36,12 @@ Explain what a random forest is
 
 #### XGBoost
 Explain what a XGBoost is
+https://xgboost.readthedocs.io/en/latest/index.html
+https://xgboost.readthedocs.io/en/latest/R-package/xgboostPresentation.html ->>>>> good intro
+
+
+xgb.train: eXtreme Gradient Boosting Training
+https://www.rdocumentation.org/packages/xgboost/versions/1.4.1.1/topics/xgb.train
 
 
 

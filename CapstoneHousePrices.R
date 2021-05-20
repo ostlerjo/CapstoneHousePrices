@@ -122,17 +122,6 @@ Num <- jTraining[,Num]
 numberCols <- names(Num)
 numberCols <- numberCols[-1] #remove Id column
 
-
-
-#################################
-#################################
-#Huge amount of factoring and manipulating - is this necessary????? Look at comments section
-# If read in as factors, no need to convert to numbers????
-# train$heatqual <- as.integer(train$heatqual)
-#Reduced the changes to 5 + 1 variables - see a bit later
-#################################
-#################################
-
 ###Explore Data
 
 ##Boruta Feature Importance
@@ -661,10 +650,34 @@ rmse_results <- bind_rows(rmse_results,
 #Make table pretty
 rmse_results %>% knitr::kable()
 
-###Validate data
+###Final Validation
+#Using XGB model
 
+#Assemble and format the validation data
+XGBfinal <- jFinal
 
+#Create matrix from the data frame
+XGBfinalData <- as.matrix(XGBfinal, rownames.force=NA)
+
+#Turn the matrix into a sparse matrix
+XGBfinalSparse <- as(XGBfinalData, "sparseMatrix")
+
+#Convert Final Sparse to xgb.DMatrix format
+XGBfinalD <- xgb.DMatrix(data = XGBfinalSparse[,vars])
+
+#Make the prediction based on the final validation set of data
+prediction_XGB_final <- predict(bstSparse, XGBfinalD)
+
+#RMSE
+rmse_final <- rmse(log(jFinal$SalePrice), log(prediction_XGB_final))
+
+#Add to tally
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(Model = "Final RMSE",
+                                     "Log RMSE" = rmse_final ))
+
+#Make table pretty
+rmse_results %>% knitr::kable()
 
 ###Save Environment Variables
 save.image(file='CapstoneHousePrices.RData')
-

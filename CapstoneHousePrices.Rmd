@@ -10,16 +10,95 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+https://github.com/ostlerjo/CapstoneHousePrices.git
+
+
+## Abstract
+
+
+
 One of the most popular competitions on kaggle is the House Prices: Advanced Regression Techniques. The original data comes from the publication Dean De Cock "Ames, Iowa: Alternative to the Boston Housing Data as an End of Semester Regression Project", Journal of Statistics Education, Volume 19, Number 3 (2011). Recently a 'demonstration' notebook has been published "First place is meaningless in this way!" that extracts the 'solution' from the full dataset. Now that the 'solution' is readily available the possibility has opened for people to reproduce the competition at home without any daily submission limit. This will open up the possibility of experimenting with advanced techniques such as pipelines with/or various estimators/models in the same notebook, extensive hyper-parameter tuning etc. And all without the risk of 'upsetting' the public leaderboard. Simply download this solution.csv file and import it into your script or notebook and evaluate the Root-Mean-Squared-Error (RMSE) between the logarithm of the predicted value and the logarithm of the data in this file.
 
 
+## Introduction
+
+### Libraries used
+
+### Data used
+
+## Data Cleaning and Preparation
+
+### Initial Cleaning
+
+### Data Partitioning
+
+## Data Exploration
+
+Size of data set and type of data
+
+### Boruta Importance Analysis
+
+Plot of importance
+
+Table of importance
+
+Confirmed vs Tentative vs. Rejected - nice summary results
+
+### Corelations
+
+Nice plots of numeric data
+
+### Further cleaning of data
+
+### Correlations
+
+Nice plot of character data
+
+### Pairs analysis
+
+2 + 1  plots
+
+### Scatter plots
+
+3 plots
+
+### Sale Price vs. Year Built
+
+## Analysis and Model Creation
+
+### Average Sale Price
+
+#### Motivation
+#### Model
+#### Prediction
+#### RMSE Results
+
+### Linear Model
+
+### LASSO regression
+
+#### Model 1
+
+#### Model 2
+
+### Random Forest
+
+### XGB - eXtreme Graded Boost
+
+### Final Validation
+
+## Results
+
+## Conclusion
+
+### Limitations
+
+## Future Work
 
 
+## Appendix
 
-
-### Appendix
-
-#### Boruta
+### A.1 Boruta Importance Analysis
 Re: Boruta: this paper  https://www.jstatsoft.org/index.php/jss/article/view/v036i11/v36i11.pdf    explains the underlying algorithm. This is a high-level outline of the algorithm:
 1) A copy is made of each explanatory variable. The values in these copies are permuted to remove any correlation with the target variable. The copies are called Shadow variables.
 2) A random forest model is fitted on this expanded data set.
@@ -28,13 +107,13 @@ Re: Boruta: this paper  https://www.jstatsoft.org/index.php/jss/article/view/v03
 
 Repeat the above steps numerous times. Original attributes that are significantly--statistically--higher then the maximum z-score of shadow attributes are deemed relevant to the prediction. Attributes that are significantly below the maximum z-score of shadow attributes are deemed not relevant.
 
-#### LASSO Regression
+### A.2 LASSO Regression
 Explain what it is
 
-#### Random Forest
+### A.3 Random Forest
 Explain what a random forest is
 
-#### XGBoost
+### A.4 XGBoost
 Explain what a XGBoost is
 https://xgboost.readthedocs.io/en/latest/index.html
 https://xgboost.readthedocs.io/en/latest/R-package/xgboostPresentation.html ->>>>> good intro
@@ -43,5 +122,9 @@ https://xgboost.readthedocs.io/en/latest/R-package/xgboostPresentation.html ->>>
 xgb.train: eXtreme Gradient Boosting Training
 https://www.rdocumentation.org/packages/xgboost/versions/1.4.1.1/topics/xgb.train
 
+### A.5 Cross Validation
 
+### A.6 Data Source
+
+### A.7 Course Material
 

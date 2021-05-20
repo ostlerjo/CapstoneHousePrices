@@ -681,3 +681,10 @@ rmse_results %>% knitr::kable()
 
 ###Save Environment Variables
 save.image(file='CapstoneHousePrices.RData')
+
+#Creating the report...
+#Use the following to knit report until issues fixed
+#  rmarkdown::render("CapstoneHousePrices.Rmd")
+#  rmarkdown::render("Test.Rmd")
+
+

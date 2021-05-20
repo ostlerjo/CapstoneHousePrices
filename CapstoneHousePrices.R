@@ -492,9 +492,74 @@ rmse_results <- bind_rows(rmse_results,
 #Make table pretty
 rmse_results %>% knitr::kable()
 
-##LASSO Regression
-#Plot LASSO
+###LASSO Regression - Numeric Columns
+#For the avoidance of multicollinearity, implementing LASSO regression is not a bad idea. Transferring the variables into the form of matrix, we can automate
+#the selection of variables by implementing 'lars' method in Lars package.
+
+Independent_variable <- jTraining[, numberCols]
+Independent_variable$SalePrice <- NULL   #Remove SalePrice
+Independent_variable <- as.matrix(Independent_variable)
+
+Dependent_Variable <- jTraining[, "SalePrice"]
+Dependent_Variable<- as.matrix(Dependent_Variable)
+
+laa <- lars(Independent_variable , Dependent_Variable,type = 'lasso')
+plot(laa)
+
+#The plot is messy as the quantity of variables is intimidating. Despite that, we can still use R to find out the model with least multicollinearity. The selection 
+#procedure is based on the value of Marrow's cp, an important indicator of multicollinearity. The prediction can be done by the script-chosen best step and RMSE can be used
+#to assess the model.
+best_step <- laa$df[which.min(laa$Cp)]
+
+Testing_variable <- jTesting[, numberCols]
+Testing_variable$SalePrice <- NULL   #Remove SalePrice
+Testing_variable <- as.matrix(Testing_variable)
+
+prediction_lars <- predict.lars(laa,newx = Testing_variable, s=best_step, type= "fit")
+
 #RMSE
+rmse_lars <- rmse(log(jTesting$SalePrice),log(prediction_lars$fit))
+
+#Add to tally
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(Model = "Lasso Model - Numeric",
+                                     "Log RMSE" = rmse_lars ))
+
+#Make table pretty
+rmse_results %>% knitr::kable()
+
+###LASSO Regression - 2 - Important Variables
+Independent_variable_2 <- jTraining[, c(NamesInterest1, charCols)]
+#Independent_variable_2$SalePrice <- NULL   #Remove SalePrice
+Independent_variable_2 <- as.matrix(Independent_variable_2)
+
+Dependent_Variable_2 <- jTraining[, "SalePrice"]
+Dependent_Variable_2 <- as.matrix(Dependent_Variable_2)
+
+laa_2 <- lars(Independent_variable_2 , Dependent_Variable_2 , type = 'lasso')
+plot(laa_2)
+
+#The plot is messy as the quantity of variables is intimidating. Despite that, we can still use R to find out the model with least multicollinearity. The selection 
+#procedure is based on the value of Marrow's cp, an important indicator of multicollinearity. The prediction can be done by the script-chosen best step and RMSE can be used
+#to assess the model.
+best_step_2 <- laa_2$df[which.min(laa_2$Cp)]
+
+Testing_variable_2 <- jTesting[, c(NamesInterest1, charCols)]
+#Testing_variable_2$SalePrice <- NULL   #Remove SalePrice
+Testing_variable_2 <- as.matrix(Testing_variable_2)
+
+prediction_lars_2 <- predict.lars(laa_2,newx = Testing_variable_2, s=best_step_2, type= "fit")
+
+#RMSE
+rmse_lars_2 <- rmse(log(jTesting$SalePrice),log(prediction_lars_2$fit))
+
+#Add to tally
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(Model = "Lasso Model - Important",
+                                     "Log RMSE" = rmse_lars_2 ))
+
+#Make table pretty
+rmse_results %>% knitr::kable()
 
 ##Random Forest
 #RMSE

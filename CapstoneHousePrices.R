@@ -129,7 +129,7 @@ numberCols <- numberCols[-1] #remove Id column
 #Huge amount of factoring and manipulating - is this necessary????? Look at comments section
 # If read in as factors, no need to convert to numbers????
 # train$heatqual <- as.integer(train$heatqual)
-#Reduced the changes to 5 variables - see a bit later
+#Reduced the changes to 5 + 1 variables - see a bit later
 #################################
 #################################
 
@@ -230,11 +230,7 @@ charCols <- attr.data.types$character
 char_confirmed <- intersect(confirmed_tib, charCols)
 
 
-##############################################################
-#REMEMBER TO Do THE FOLLOWING IN THE TESTING AND FINAL SET
-##############################################################
-
-#Let's convert those to factors and then run one more set of correlations
+#Let's convert those to factors and then run one more set of correlations -> ALSO DOING THIS IN jTESTING and jFINAL data sets
 #GarageType
 price <- jTraining %>%
   group_by(GarageType) %>%
@@ -244,6 +240,20 @@ price <- jTraining %>%
 jTraining$jGarageType[jTraining$GarageType %in% c("BuiltIn", "Attchd")] <- 3
 jTraining$jGarageType[jTraining$GarageType %in% c("Basment", "Detchd", "2Types")] <- 2
 jTraining$jGarageType[jTraining$GarageType %in% c("CarPort", "NoGarage")] <- 1
+
+jTraining$GarageType <- NULL
+
+jTesting$jGarageType[jTesting$GarageType %in% c("BuiltIn", "Attchd")] <- 3
+jTesting$jGarageType[jTesting$GarageType %in% c("Basment", "Detchd", "2Types")] <- 2
+jTesting$jGarageType[jTesting$GarageType %in% c("CarPort", "NoGarage")] <- 1
+
+jTesting$GarageType <- NULL
+
+jFinal$jGarageType[jFinal$GarageType %in% c("BuiltIn", "Attchd")] <- 3
+jFinal$jGarageType[jFinal$GarageType %in% c("Basment", "Detchd", "2Types")] <- 2
+jFinal$jGarageType[jFinal$GarageType %in% c("CarPort", "NoGarage")] <- 1
+
+jFinal$GarageType <- NULL
 
 #KitchenQual
 price <- jTraining %>%
@@ -257,6 +267,24 @@ jTraining$jKitchenQual[jTraining$KitchenQual == "TA"] <- 2
 jTraining$jKitchenQual[jTraining$KitchenQual == "Fa"] <- 1
 jTraining$jKitchenQual[jTraining$KitchenQual == "Po"] <- 0
 
+jTraining$KitchenQual <- NULL
+
+jTesting$jKitchenQual[jTesting$KitchenQual == "Ex"] <- 4
+jTesting$jKitchenQual[jTesting$KitchenQual == "Gd"] <- 3
+jTesting$jKitchenQual[jTesting$KitchenQual == "TA"] <- 2
+jTesting$jKitchenQual[jTesting$KitchenQual == "Fa"] <- 1
+jTesting$jKitchenQual[jTesting$KitchenQual == "Po"] <- 0
+
+jTesting$KitchenQual <- NULL
+
+jFinal$jKitchenQual[jFinal$KitchenQual == "Ex"] <- 4
+jFinal$jKitchenQual[jFinal$KitchenQual == "Gd"] <- 3
+jFinal$jKitchenQual[jFinal$KitchenQual == "TA"] <- 2
+jFinal$jKitchenQual[jFinal$KitchenQual == "Fa"] <- 1
+jFinal$jKitchenQual[jFinal$KitchenQual == "Po"] <- 0
+
+jFinal$KitchenQual <- NULL
+
 #ExterQual
 price <- jTraining %>%
   group_by(ExterQual) %>%
@@ -269,6 +297,24 @@ jTraining$jExterQual[jTraining$ExterQual == "TA"] <- 2
 jTraining$jExterQual[jTraining$ExterQual == "Fa"] <- 1
 jTraining$jExterQual[jTraining$ExterQual == "Po"] <- 0
 
+jTraining$ExterQual <- NULL
+
+jTesting$jExterQual[jTesting$ExterQual == "Ex"] <- 4
+jTesting$jExterQual[jTesting$ExterQual == "Gd"] <- 3
+jTesting$jExterQual[jTesting$ExterQual == "TA"] <- 2
+jTesting$jExterQual[jTesting$ExterQual == "Fa"] <- 1
+jTesting$jExterQual[jTesting$ExterQual == "Po"] <- 0
+
+jTesting$ExterQual <- NULL
+
+jFinal$jExterQual[jFinal$ExterQual == "Ex"] <- 4
+jFinal$jExterQual[jFinal$ExterQual == "Gd"] <- 3
+jFinal$jExterQual[jFinal$ExterQual == "TA"] <- 2
+jFinal$jExterQual[jFinal$ExterQual == "Fa"] <- 1
+jFinal$jExterQual[jFinal$ExterQual == "Po"] <- 0
+
+jFinal$ExterQual <- NULL
+
 #MSZoning
 price <- jTraining %>%
         group_by(MSZoning) %>%
@@ -279,6 +325,22 @@ jTraining$jMSZoning[jTraining$MSZoning == "FV"] <- 4
 jTraining$jMSZoning[jTraining$MSZoning == "RL"] <- 3
 jTraining$jMSZoning[jTraining$MSZoning %in% c("RH","RM")] <- 2
 jTraining$jMSZoning[jTraining$MSZoning == "C (all)"] <- 1
+
+jTraining$MSZoning <- NULL
+
+jTesting$jMSZoning[jTesting$MSZoning == "FV"] <- 4
+jTesting$jMSZoning[jTesting$MSZoning == "RL"] <- 3
+jTesting$jMSZoning[jTesting$MSZoning %in% c("RH","RM")] <- 2
+jTesting$jMSZoning[jTesting$MSZoning == "C (all)"] <- 1
+
+jTesting$MSZoning <- NULL
+
+jFinal$jMSZoning[jFinal$MSZoning == "FV"] <- 4
+jFinal$jMSZoning[jFinal$MSZoning == "RL"] <- 3
+jFinal$jMSZoning[jFinal$MSZoning %in% c("RH","RM")] <- 2
+jFinal$jMSZoning[jFinal$MSZoning == "C (all)"] <- 1
+
+jFinal$MSZoning <- NULL
 
 #Neighborhood
 price <- jTraining %>%
@@ -294,9 +356,44 @@ jTraining$jNeighborhood[jTraining$Neighborhood %in% price_hi$Neighborhood] <- 3
 jTraining$jNeighborhood[jTraining$Neighborhood %in% price_med$Neighborhood] <- 2
 jTraining$jNeighborhood[jTraining$Neighborhood %in% price_lo$Neighborhood] <- 1
 
+jTraining$Neighborhood <- NULL
+
+jTesting$jNeighborhood[jTesting$Neighborhood %in% price_hi$Neighborhood] <- 3
+jTesting$jNeighborhood[jTesting$Neighborhood %in% price_med$Neighborhood] <- 2
+jTesting$jNeighborhood[jTesting$Neighborhood %in% price_lo$Neighborhood] <- 1
+
+jTesting$Neighborhood <- NULL
+
+jFinal$jNeighborhood[jFinal$Neighborhood %in% price_hi$Neighborhood] <- 3
+jFinal$jNeighborhood[jFinal$Neighborhood %in% price_med$Neighborhood] <- 2
+jFinal$jNeighborhood[jFinal$Neighborhood %in% price_lo$Neighborhood] <- 1
+
+jFinal$Neighborhood <- NULL
+
+#Utilities - Otherwise lm fails because all values = "AllPub"
+jTraining$jUtilities[jTraining$Utilities == "AllPub"] <- 1
+jTraining$jUtilities[jTraining$Utilities != "AllPub"] <- 0
+
+jTraining$Utilities <- NULL
+
+jTesting$jUtilities[jTesting$Utilities == "AllPub"] <- 1
+jTesting$jUtilities[jTesting$Utilities != "AllPub"] <- 0
+
+jTesting$Utilities <- NULL
+
+jFinal$jUtilities[jFinal$Utilities == "AllPub"] <- 1
+jFinal$jUtilities[jFinal$Utilities != "AllPub"] <- 0
+
+jFinal$Utilities <- NULL
+
+names(jTraining)
+names(jTesting)
+names(jFinal)
+
 #Look at the correlations for the character variables
-charCols <- c("jGarageType", "jKitchenQual", "jExterQual", "jMSZoning", "jNeighborhood", "SalePrice")
-correlations <- cor(jTraining[, charCols],use="everything")
+charCols <- c("jGarageType", "jKitchenQual", "jExterQual", "jMSZoning", "jNeighborhood")
+charColsSP <- c(charCols, "SalePrice")
+correlations <- cor(jTraining[, charColsSP],use="everything")
 corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
 
 #Fun with Real Estate commentary
@@ -317,32 +414,83 @@ corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig =
 
 
 ##Simple scatterplot matrix (pairs) + 1 from XGBoost (pairs)
+###### What is a scatterplot matrix???? What is "pairs"??? Maybe to subsequently exclude variables that are too closely correlated?????
 
+#The dependent variable (SalePrice) looks having decent linearity when plotting with other variables. However, it is also obvious that some independent variables 
+#also have linear relationships with each other.
+#The problem of multicollinearity is obvious and should be treated when the quantity of variables in regression formula is huge.
 
+#I picked a few of the variables that had a lot of correlation strengths. Basements have been getting bigger over time, apparently.
+#As have the sizes of the living areas. Good to know!
 
+pairs(~YearBuilt+OverallQual+TotalBsmtSF+GrLivArea,data=jTraining, main="Simple Scatterplot Matrix")      ### FunWithRE code
+pairs(~SalePrice+OverallQual+TotalBsmtSF+GarageCars+GarageArea,data=jTraining, main="Scatterplot Matrix")  ### XGBoost code
 
-
-
+#Too many!!!
+pairs(~SalePrice+GrLivArea+OverallQual+TotalBsmtSF+X1stFlrSF+GarageArea+YearBuilt,data=jTraining, main="Scatterplot Matrix")  ### XGBoost code
 
 
 ##3 scatterplot charts - not sure if they really show anything!!
+####### What are scatterplots??? What are they actually showing?
+#I'm also interested in the relationship between sale price and some numeric variables, but these can be tougher to visualize.
+scatterplot(SalePrice ~ YearBuilt, data=jTraining,  xlab="Year Built", ylab="Sale Price", grid=FALSE)
+scatterplot(SalePrice ~ YrSold, data=jTraining,  xlab="Year Sold", ylab="Sale Price", grid=FALSE)
+scatterplot(SalePrice ~ X1stFlrSF, data=jTraining,  xlab="Square Footage Floor 1", ylab="Sale Price", grid=FALSE)
 
 ## Sales Price vs. Year Built => newer houses worth more
+#The final descriptive analysis I put here would be the relationship between the variable YearBuilt and SalePrice.
+#Merge below with first scatter plot
+ggplot(train,aes(x= YearBuilt,y=SalePrice))+
+  geom_point()+
+  geom_smooth()
+#It is not difficult to find that the price of house increases generally with the year built, the trend is obvious. 
+#Prices are higher for new houses, that makes sense. Also, we can see that sale prices dropped when we would expect.
+#We also have some strange outliers on first floor square footage - probably bad data but it's not going to have a huge influence.
+
+
+
+#Based on the above data exploration, it makes sense to use a reduced list of XYZ variables going forward in the creation of the models
+
 
 ###Create Models
 
 ##Average Price
-#RMSE
+mu_price <- mean(jTraining$SalePrice)
+mu_price
 
-##Linear Model All attributes
 #RMSE
+rmse_mu <- rmse(log(jTesting$SalePrice), log(mu_price))
+rmse_mu
 
-##Linear Model Correlation attributes (17)
-#Plot the summary => 4 charts in a grid
-#RMSE
+#Keep a record/tally of the results as the different models are built up
+rmse_results <- tibble(Model = "Average Sale Price", "Log RMSE" = rmse_mu)
 
-##Linear Model Confirmed Attributes (49)
+#Make table pretty
+rmse_results %>% knitr::kable()
+
+##Linear Model - Important Variables
+#Finally, we have our data and can build some models. Since our outcome is a continuous numeric variable, 
+#we want a linear model, not a GLM.
+lm_model <- lm(SalePrice ~ ., data=jTraining[, c(NamesInterest1, charCols , "SalePrice")])
+summary(lm_model)
+
+prediction_lm <- predict(lm_model, jTesting, type="response")
+
+#The R Square is not bad, and all variables pass the Hypothesis Test. The diagonsis of residuals is also not bad. The diagnosis can be viewed below.
+layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE))
+plot(lm_model)
+par(mfrow=c(1,1))
+
 #RMSE
+rmse_lm <- rmse(log(jTesting$SalePrice), log(prediction_lm))
+
+#Add to tally
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(Model = "Linear Model",
+                                     "Log RMSE" = rmse_lm ))
+
+#Make table pretty
+rmse_results %>% knitr::kable()
 
 ##LASSO Regression
 #Plot LASSO

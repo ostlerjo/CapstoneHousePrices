@@ -438,7 +438,7 @@ Merge below with first scatter plot????
 
 ```{r PriceVsYear, echo=FALSE, message=FALSE}
 
-ggplot(train,aes(x= YearBuilt,y=SalePrice))+
+ggplot(jTraining , aes(x = YearBuilt , y = SalePrice))+
   geom_point()+
   geom_smooth()
 
@@ -489,6 +489,21 @@ XXX
 `r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
 XXX
 
+The R Square is not bad, and all variables pass the Hypothesis Test. The diagonsis of residuals is also not bad. The diagnosis can be viewed below.
+
+```{r model_lm , echo=FALSE, message=FALSE}
+
+layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE))
+plot(model_lm)
+par(mfrow=c(1,1))
+
+```
+
+
+
+
+
+
 `r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
 ```{r RMSE-summary-2, echo=FALSE}
 rmse_results[1:2,] %>% 
@@ -499,8 +514,9 @@ rmse_results[1:2,] %>%
 ###### $\color{white}{\text{Line Breaker hack!!}}$  
 
 ## LASSO regression
+For the avoidance of multicollinearity, implementing LASSO regression (see appendix for background to LASSO) is not a bad idea. Transferring the variables into the form of matrix, we can automate the selection of variables by implementing 'lars' method in Lars package.
 
-### Model 1
+### Model 1 - Numeric Columns
 `r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
 XXX
 
@@ -509,6 +525,17 @@ XXX
 
 `r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
 XXX
+
+```{r model_lars_1 , echo=FALSE, message=FALSE}
+
+plot(model_lars)
+
+```
+
+The plot is messy as the quantity of variables is intimidating. Despite that, we can still use R to find out the model with least multicollinearity. The selection 
+procedure is based on the value of Marrow's cp, an important indicator of multicollinearity. The prediction can be done by the script-chosen best step and RMSE can be used
+to assess the model.
+
 
 `r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
 ```{r RMSE-summary-3, echo=FALSE}
@@ -519,7 +546,7 @@ rmse_results[1:3,] %>%
 
 ###### $\color{white}{\text{Line Breaker hack!!}}$  
 
-### Model 2
+### Model 2 - Important Variables
 `r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
 XXX
 
@@ -528,6 +555,13 @@ XXX
 
 `r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
 XXX
+
+```{r model_lars_2 , echo=FALSE, message=FALSE}
+
+plot(model_lars_2)
+
+```
+
 
 `r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
 ```{r RMSE-summary-4, echo=FALSE}
@@ -540,13 +574,23 @@ rmse_results[1:4,] %>%
 
 ## Random Forest
 `r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
-XXX
+Let's try training the model with an RF.   
+Let's use all the variables and see how things look, since randomforest does its own feature selection.
+
+See the appendix for some background on the Random Forest process
 
 `r text_spec("Model",  color = "#d2691e", font_size= 10)`     
 XXX
 
 `r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
 XXX
+
+```{r model_rf , echo=FALSE, message=FALSE}
+
+plot(model_rf)
+
+```
+
 
 `r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
 ```{r RMSE-summary-5, echo=FALSE}
@@ -559,7 +603,8 @@ rmse_results[1:5,] %>%
 
 ## XGB - eXtreme Graded Boost
 `r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
-XXX
+
+See the appendix for some background on the XGB process
 
 `r text_spec("Model",  color = "#d2691e", font_size= 10)`     
 XXX
@@ -578,7 +623,9 @@ rmse_results[1:6,] %>%
 
 ## Final Validation
 `r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
-XXX
+As can be seen the XGB method gave the lowest RMSE therefore this is the model that was chosen.
+
+The model was then tested with the final validation data set to see if the RMSE was in line with expectations.
 
 `r text_spec("Model",  color = "#d2691e", font_size= 10)`     
 XXX

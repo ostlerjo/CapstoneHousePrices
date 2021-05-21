@@ -22,6 +22,7 @@ if(!require(kernlab)) install.packages("kernlab", repos = "http://cran.us.r-proj
 if(!require(corrplot)) install.packages("corrplot", repos = "http://cran.us.r-project.org")
 if(!require(car)) install.packages("car", repos = "http://cran.us.r-project.org")
 if(!require(lars)) install.packages("lars", repos = "http://cran.us.r-project.org")
+if(!require(kableExtra)) install.packages("kableExtra", repos = "http://cran.us.r-project.org")
 
 library(caret)
 library(data.table)
@@ -42,6 +43,7 @@ library(kernlab)
 library(corrplot)
 library(car)
 library(lars)
+library(kableExtra)
 
 ###Download data
 dl <- read_csv("data/train.csv")   #Read in as factors???
@@ -467,9 +469,11 @@ scatterplot(SalePrice ~ X1stFlrSF, data=jTraining,  xlab="Square Footage Floor 1
 ## Sales Price vs. Year Built => newer houses worth more
 #The final descriptive analysis I put here would be the relationship between the variable YearBuilt and SalePrice.
 #Merge below with first scatter plot
-ggplot(train,aes(x= YearBuilt,y=SalePrice))+
+
+ggplot(jTraining,aes(x= YearBuilt,y=SalePrice))+
   geom_point()+
   geom_smooth()
+
 #It is not difficult to find that the price of house increases generally with the year built, the trend is obvious. 
 #Prices are higher for new houses, that makes sense. Also, we can see that sale prices dropped when we would expect.
 #We also have some strange outliers on first floor square footage - probably bad data but it's not going to have a huge influence.
@@ -519,7 +523,7 @@ rmse_results <- bind_rows(rmse_results,
 #Make table pretty
 rmse_results %>% knitr::kable()
 
-###LASSO Regression - Numeric Columns
+###LASSO Regression - 1- Numeric Columns
 #For the avoidance of multicollinearity, implementing LASSO regression is not a bad idea. Transferring the variables into the form of matrix, we can automate
 #the selection of variables by implementing 'lars' method in Lars package.
 
@@ -595,6 +599,8 @@ model_rf <- randomForest(SalePrice ~ ., data=jTraining)
 
 # Predict using the test set
 prediction_rf <- predict(model_rf, jTesting)
+
+plot(model_rf)
 
 #RMSE
 rmse_rf <- rmse(log(jTesting$SalePrice), log(prediction_rf))

@@ -90,6 +90,9 @@ NA_Count
 #The "test" data provided does not have a column called "SalePrice" since it's used for a competition and is therefore secret
 #For the purposes of this project, I will use 10% of the "train" data as the final validation data set
 dim(train)
+xRaw <- nrow(train)
+yRaw <- ncol(train)
+
 outcome1 <- train$SalePrice
 length(outcome1)
 
@@ -98,6 +101,7 @@ partition1 <- createDataPartition(y=outcome1, p=0.1, list=F)
 
 jFinal <- train[partition1,]
 dim(jFinal)
+nFinal <- nrow(jFinal)
 
 jModelling <- train[-partition1,]
 dim(jModelling)
@@ -111,9 +115,11 @@ partition2 <- createDataPartition(y=outcome2, p=0.4, list=F)
 
 jTesting <- jModelling[partition2,]
 dim(jTesting)
+nTesting <- nrow(jTesting)
 
 jTraining <- jModelling[-partition2,]
 dim(jTraining)
+nTraining <- nrow(jTraining)
 
 ###Data Prep
 # Original Numeric Variables - Used in correlation matrices later on
@@ -123,6 +129,30 @@ numberCols <- names(Num)
 numberCols <- numberCols[-1] #remove Id column
 
 ###Explore Data
+newest_prop <- max(jTraining$YearBuilt)
+oldest_prop <- min(jTraining$YearBuilt)
+
+highest_sale <- max(jTraining$SalePrice)
+lowest_sale <- min(jTraining$SalePrice)
+
+latest_sale <- max(jTraining$YrSold)
+earliest_sale <- min(jTraining$YrSold)
+
+#Number of neighborhoods
+nNeighbors <- n_distinct(jTraining$Neighborhood)
+
+#Distribution of Sales by Neighborhood
+plotSalesNeighborhood <- jTraining %>% 
+                group_by(Neighborhood) %>%
+                summarize(count=n())
+
+plotSalesNeighborhood %>%
+                ggplot(aes(x=Neighborhood, y=count))+
+                geom_bar(stat = "identity", fill="steelblue")+
+                ggtitle("Number of Sales per Neighborhood")+
+                xlab("Neighborhood")+
+                ylab("Number of Sales")+
+                theme(axis.text.x = element_text(angle = 45, hjust = 1))  
 
 ##Boruta Feature Importance
 #Exploring dataset could be difficult when the number of variables is as large as it is (Id + 79 + SalePrice).
@@ -155,6 +185,10 @@ response <- jTraining$SalePrice
 
 #Remove identifier and response variables
 dependents <- jTraining[candidate.features]
+
+#Used for reporting
+nNum <- sum(data.classes=="numeric")
+nChara <- sum(data.classes=="character")
 
 #Run Boruta Analysis
 set.seed(13, sample.kind = "Rounding")
@@ -190,6 +224,10 @@ all.df <- as.data.frame(candidate.features)
 tentative <- tent_n_confirmed.df %>% anti_join(confirmed.df, by=c("tent_n_confirmed_tib"="confirmed_tib"))
 rejected <- all.df %>% anti_join(tent_n_confirmed.df, by=c("candidate.features" = "tent_n_confirmed_tib"))
 confirmed <- confirmed.df
+
+nTent <- nrow(tentative)
+nReject <- nrow(rejected)
+nConfirm <- nrow(confirmed)
 
 #Lot of dependents therefore, I mainly focused on the exploration of numeric
 #variables in this report. The descriptive analysis of dummy variables are mostly finished by drawing box plots. Some dummy variables, like 'Street',

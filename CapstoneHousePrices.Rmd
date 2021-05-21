@@ -1,104 +1,661 @@
 ---
-title: "CapstoneHousePrices"
+title: "Capstone House Prices"
+subtitle: 'HarvardX (edX) Data Science Professional Certificate: PH125.9x Capstone'
 author: "Jonathan Ostler"
-date: "17/05/2021"
-output: html_document
+date: "`r format(Sys.Date())`"
+output: 
+  pdf_document: 
+    df_print: kable
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    fig_caption: yes
+  html_document: default
+include-before: '`\newpage{}`{=latex}'
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r load-global-env , eval=TRUE, echo=FALSE}
 
+#Ensures all the data created from the r script is available to the Rmd file
+#Process - 
+  # 1 - Run the script
+  # 2 - Save the .Rmd file
+  # 3 - Click on the Knit button/icon at the top of the IDE
+  # 4 - This is the "pull" method
+  # 5 - Alternatively set eval = FALSE for this chunk and "push" from console ====> #  rmarkdown::render("CapstoneHousePrices.Rmd")
+
+load(file = "CapstoneHousePrices.RData")
+
+```
+
+\newpage
+# Abstract
+Data science has become the super-power behind the success of many businesses of today.  These companies need and use data science approaches like machine learning to extract patterns, trends, and other actionable information from large data sets (Galwey, 2014).  In turn, companies use these findings to improve performance, grow, and  perhaps most importantly, to provide better products and services to consumers (Irizarry, 2020).
+
+Not surprisingly, recommendation and prediction systems are increasingly used by businesses to provide personalized insights to consumers. Somewhat famously, in 2009 Netflix awarded a $1,000,000 prize to the data science team who improved the streaming giant’s movie recommendation algorithm by 10%.  The Netflix competition was the inspiration for this project and subject of this report. 
+
+The first goal of this project was to create a movie recommendation algorithm and model from a MovieLens dataset from GroupLens utilizing R Markdown in RStudio.  The selected dataset comprises 10 million unique movie ratings (observation).  Code provided within the course parses the dataset into a training set (edx) and a reserved dataset (validation) held for final testing and validation of the resulting algorithm (Galwey, 2014). The second goal, and perhaps most important goal, was to create and train a final algorithm (model) that predicts movie ratings with a RMSE (root mean square error) of less than 0.86490 (Project Target) when compared to the actual ratings of the validation dataset.
+
+
+
+
+One of the most popular competitions on kaggle is the House Prices: Advanced Regression Techniques. The original data comes from the publication Dean De Cock "Ames, Iowa: Alternative to the Boston Housing Data as an End of Semester Regression Project", Journal of Statistics Education, Volume 19, Number 3 (2011). Recently a 'demonstration' notebook has been published "First place is meaningless in this way!" that extracts the 'solution' from the full dataset. Now that the 'solution' is readily available the possibility has opened for people to reproduce the competition at home without any daily submission limit. This will open up the possibility of experimenting with advanced techniques such as pipelines with/or various estimators/models in the same notebook, extensive hyper-parameter tuning etc. And all without the risk of 'upsetting' the public leaderboard. Simply download this solution.csv file and import it into your script or notebook and evaluate the Root-Mean-Squared-Error (RMSE) between the logarithm of the predicted value and the logarithm of the data in this file.    
+
+
+Data was based on the sales of properties in the XXX region of YYYY during the early 2000's etc etc. Trying to predict the Sales Price given the array of predictors such as year built, number of rooms etc. etc.
+
+
+This report details some of the techniques used in the winning solution and how it was built up from first principles.
+
+The Netflix challenge used the standard error loss function, Root Mean Squared Errors (**RMSE**): 
+
+$$RMSE = \sqrt{\frac{1}{N}\sum_{u,i}(\hat{y}_{u,i}-y_{u,i})^2}$$
+with the winner being chosen based on the lowest RMSE value.
+
+This report shows the evolution of the RMSE value from an initial simple solution to the ultimate solution as more complex models are created.   
+
+The GitHub repository for this report can be found at
 https://github.com/ostlerjo/CapstoneHousePrices.git
 
 
-## Abstract
+\newpage
+# Introduction
+
+## Libraries used
+
+```{r installing-libs, eval=TRUE, echo=FALSE, message=FALSE}
+
+if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
+if(!require(data.table)) install.packages("data.table", repos = "http://cran.us.r-project.org")
+if(!require(Boruta)) install.packages("Boruta", repos = "http://cran.us.r-project.org")
+if(!require(plyr)) install.packages("plyr", repos = "http://cran.us.r-project.org")
+if(!require(dplyr)) install.packages("dplyr", repos = "http://cran.us.r-project.org")
+if(!require(pROC)) install.packages("pROC", repos = "http://cran.us.r-project.org")
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(FeatureHashing)) install.packages("FeatureHashing", repos = "http://cran.us.r-project.org")
+if(!require(Matrix)) install.packages("Matrix", repos = "http://cran.us.r-project.org")
+if(!require(xgboost)) install.packages("xgboost", repos = "http://cran.us.r-project.org")
+if(!require(randomForest)) install.packages("randomForest", repos = "http://cran.us.r-project.org")
+if(!require(ggplot2)) install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+if(!require(stringr)) install.packages("stringr", repos = "http://cran.us.r-project.org")
+if(!require(dummies)) install.packages("dummies", repos = "http://cran.us.r-project.org")
+if(!require(Metrics)) install.packages("Metrics", repos = "http://cran.us.r-project.org")
+if(!require(kernlab)) install.packages("kernlab", repos = "http://cran.us.r-project.org")
+if(!require(corrplot)) install.packages("corrplot", repos = "http://cran.us.r-project.org")
+if(!require(car)) install.packages("car", repos = "http://cran.us.r-project.org")
+if(!require(lars)) install.packages("lars", repos = "http://cran.us.r-project.org")
+if(!require(kableExtra)) install.packages("kableExtra", repos = "http://cran.us.r-project.org")
+
+```
 
 
 
-One of the most popular competitions on kaggle is the House Prices: Advanced Regression Techniques. The original data comes from the publication Dean De Cock "Ames, Iowa: Alternative to the Boston Housing Data as an End of Semester Regression Project", Journal of Statistics Education, Volume 19, Number 3 (2011). Recently a 'demonstration' notebook has been published "First place is meaningless in this way!" that extracts the 'solution' from the full dataset. Now that the 'solution' is readily available the possibility has opened for people to reproduce the competition at home without any daily submission limit. This will open up the possibility of experimenting with advanced techniques such as pipelines with/or various estimators/models in the same notebook, extensive hyper-parameter tuning etc. And all without the risk of 'upsetting' the public leaderboard. Simply download this solution.csv file and import it into your script or notebook and evaluate the Root-Mean-Squared-Error (RMSE) between the logarithm of the predicted value and the logarithm of the data in this file.
+The following r libraries were used to generate the data, perform the analysis and create the algorithms detailed in this report:
+
+```{r loading-libs, eval=TRUE, echo=TRUE,  message=FALSE}
+
+library(caret)
+library(data.table)
+library(Boruta)
+library(plyr)
+library(dplyr)
+library(pROC)
+library(tidyverse)
+library(FeatureHashing)
+library(Matrix)
+library(xgboost)
+require(randomForest)
+require(ggplot2)
+library(stringr)
+library(dummies)
+library(Metrics)
+library(kernlab)
+library(corrplot)
+library(car)
+library(lars)
+library(kableExtra)
+
+```
+
+## Data used
+Data was obtained from kaggle.com. This is a great source of data sets. The original data set came from XYZ.
 
 
-## Introduction
+\newpage
+# Data Cleaning and Preparation
 
-### Libraries used
+## Initial Data Cleaning
 
-### Data used
+Due to the way r treats variable names, three columns were mutated to put a dummy X character in front e.g. 1stFlrSF became X1stFlrSF etc.
 
-## Data Cleaning and Preparation
+Secondly several columns had false NAs in them that would cause the code to give errors e.g. the column "Alley" had a set of NAs which in fact meant "No Alley". As a consequence, all of these types of values were explored and then updated to their correct values.
 
-### Initial Cleaning
+Finally a couple of numeric columns also had NAs when they should in fact mean 0. As a consequence, all of these types of values were updated to be 0 rather than NA.
 
-### Data Partitioning
+## Data Partitioning
+Two sets of data were available i.e. a train set and a test set. Since the data was originally going to be used in a competition to predict Sale Prices, the test set provided did not have a Sale Price column. As a consequence for this project where predictive results needed to be reported, the train data set was used for training, testing and the final validation through partitioning.
 
-## Data Exploration
+Initially the train set was partitioned into a Modeling set and a Final Validation set. The split was 90% / 10% in favor of the Modeling set. The small percentage assigned to the Final Validation set was because the overall data set did not have so many values (around 1'500) and most of the data should be used for modeling. The Final Validation set was set aside and not used again until the Final RMSE calculation. 
 
-Size of data set and type of data
+Next the Modeling set was further partitioned into a Training set and a Testing set that would be used for analysis, model creation, training and initial validation. The split was 60 % / 40% in favor of the Training set. The split was chosen to be almost equal but at the same time due to a restricted number of data points, a slightly larger value was assigned to the Training set.
 
-### Boruta Importance Analysis
+\newpage
+# Data Exploration
+It is a good practice to first understand the data itself before attempting to gather insights or draw conclusions (Viswanathan, 2015). Exploratory data analysis is a necessary and critical process for preforming these initial investigations on data. This process allows investigators to discover patterns, spot anomalies, test hyptheses, and to scrutinize assumptions with the assistance of summary statistics and graphical representations (visualizations).
 
-Plot of importance
 
-Table of importance
+```{r, echo=FALSE}
 
-Confirmed vs Tentative vs. Rejected - nice summary results
+  rRaw <- format(xRaw, big.mark="'")
 
-### Corelations
+```
 
-Nice plots of numeric data
+```{r, echo=FALSE}
 
-### Further cleaning of data
+  cRaw <- yRaw
 
-### Correlations
+```
 
-Nice plot of character data
 
-### Pairs analysis
+```{r, echo=FALSE}
 
-2 + 1  plots
+  iFinal <- nFinal
 
-### Scatter plots
+```
 
-3 plots
+```{r, echo=FALSE}
 
-### Sale Price vs. Year Built
+  iTesting <- nTesting
 
-## Analysis and Model Creation
+```
 
-### Average Sale Price
+```{r, echo=FALSE}
 
-#### Motivation
-#### Model
-#### Prediction
-#### RMSE Results
+  iTraining <- nTraining
 
-### Linear Model
+```
 
-### LASSO regression
 
-#### Model 1
+```{r, echo=FALSE}
 
-#### Model 2
+  old_prop <- oldest_prop
 
-### Random Forest
+```
 
-### XGB - eXtreme Graded Boost
+```{r, echo=FALSE}
 
-### Final Validation
+  new_prop <- newest_prop
 
-## Results
+```
 
-## Conclusion
+```{r, echo=FALSE}
 
-### Limitations
+  low_sale <- format(lowest_sale, big.mark="'")
+
+```
+
+```{r, echo=FALSE}
+
+  high_sale <- format(highest_sale, big.mark="'")
+
+```
+
+```{r, echo=FALSE}
+
+  late_sale <- latest_sale
+
+```
+
+```{r, echo=FALSE}
+
+  early_sale <- earliest_sale
+
+```
+
+```{r, echo=FALSE}
+
+  iNeighbors <- nNeighbors
+
+```
+
+```{r, echo=FALSE}
+
+  iNum <- nNum
+
+```
+
+```{r, echo=FALSE}
+
+  iChara <- nChara
+
+```
+
+The raw data contained `r rRaw` rows (each representing a sale of a property) and `r cRaw` columns (i.e. an Id, a Sale Price and `r cRaw -2` potential predictors of the Sale Price).
+
+The data covered `r iNeighbors` neighborhoods in Ames????
+
+After partitioning, the Final Validation data had `r iFinal` rows, the Testing data had `r iTesting` rows and the Training data had `r iTraining` rows.
+
+The training data covered properties built from `r old_prop` to `r new_prop` with Sale Prices ranging from as low as `r low_sale` to `r high_sale`. The training data captured actual sales from `r early_sale` to `r late_sale`.
+
+Of the `r cRaw -2` potential predictor columns, `r iChara` were characters and the remaining `r iNum` were numeric. Later on in the analysis, some of the key character variables will be converted to numerical values to assist with the algorithm building.
+
+
+```{r NumOfSalesPerNeighborhood, fig.cap="Location of Sales",     fig.width=5,  fig.height=3.333 ,   fig.align='left', echo=FALSE}
+
+plotSalesNeighborhood %>%
+  ggplot(aes(x=Neighborhood, y=count))+
+  geom_bar(stat = "identity", fill="steelblue")+
+  ggtitle("Number of Sales per Neighborhood")+
+  xlab("Neighborhood")+
+  ylab("Number of Sales")+ 
+  theme_minimal()+
+  theme(panel.background = element_rect(color = "black", size = 0.5))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  theme(plot.title = element_text(size=40))
+```
+
+The above chart shows that sales occurred in many different neighborhoods and so this should be an indicator that it will be an important factor in the algorithm.
+
+
+## Boruta Importance Analysis
+Exploring the dataset could be difficult when the number of variables is as large as it is i.e. `r cRaw -2`. As a result, it makes sense to start with a so called Boruta Feature Importance analysis to show which items are deemed important. See appendix for details of the analysis.
+
+```{r BorutaImportanceAnalysis , fig.width=5,  fig.height=3.333 ,   fig.align='left', echo=FALSE}
+
+plot(bor.results)
+
+```
+
+The above plot shows the relative importance of each candidate explanatory attribute.
+The x-axis represents each of candidate explanatory variables.
+Green color indicates the attributes that are relevant to prediction.
+Red indicates attributes that are not relevant.
+Yellow color indicates attributes that may or may not be relevant to predicting the response variable.
+
+The below table lists all of the variables with their "importance"
+
+```{r importancetable, echo=FALSE}
+
+impTable %>% knitr::kable() #'simple')
+
+```
+
+
+```{r, echo=FALSE}
+
+  iTent <- nTent
+
+```
+
+```{r, echo=FALSE}
+
+  iReject <- nReject
+
+```
+
+```{r, echo=FALSE}
+
+  iConfirm <- nConfirm
+
+```
+
+Of the `r cRaw -2` variables, `r iConfirm` were deemed important, `r iReject` were deemed not important and the remaining `r iTent` were considered "tentative".
+
+
+## Correlations
+Extending the theme of important variables, looking first at all the numeric values.   
+Lot of dependents therefore, I mainly focused on the exploration of numeric
+variables in this report. The descriptive analysis of dummy variables are mostly finished by drawing box plots. Some dummy variables, like 'Street',
+are appeared to be ineffective due to the extreme box plot. The numeric variables are sorted out before turning dummy variables into numeric form.
+
+All original numeric values
+
+```{r corNumerical, echo=FALSE}
+
+correlations <- cor(jTraining[, numberCols],use="everything")
+corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+
+```
+
+
+From the above 13 of the numeric variables were considered important (correlation > 0.35) and this ties in with the Bawewrfsdfdsfs analysis
+
+```{r NamesOfInterest, echo=FALSE}
+
+NamesInterest1 %>% knitr::kable() #'simple')
+
+
+```
+
+
+
+## Further cleaning of data and correlations
+From the Boruta analysis, of the top 20 variables only 5 are character variables. After converting to numerical values, the correlations with salePrice are high.
+
+```{r corCharacter, echo=FALSE}
+
+correlations <- cor(jTraining[, charColsSP],use="everything")
+corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+
+```
+
+
+```{r CharactersOfInterest, echo=FALSE}
+
+charCols %>% knitr::kable() #'simple')
+
+
+```
+
+
+
+**Fun with Real Estate commentary**    
+Another thing I want to do is build some interactions that may be worth looking at.   
+For example, if the house has a pool, is it more important that it has a big deck, or something like that?    
+I used correlation visuals like this to do it- you can choose what you'd want to put in and how many variations    
+you want to make.   
+
+**XGB commentary on cor**    
+'OverallQual','TotalBsmtSF','GarageCars' and 'GarageArea' have relative strong correlation with each other.     
+Therefore, as an example, we plot the correlation among those four variables and SalePrice.     
+Jon - ADD OTHERS IN - 1stFlrSF and GrLivArea    
+
+**Come up with an overall list of variable we will include...**     
+Confirmed, numeric plus 5 character ones
+
+
+
+
+## Pairs analysis
+
+Simple scatterplot matrix (pairs) + 1 from XGBoost (pairs)
+
+**What is a scatterplot matrix???? What is "pairs"??? Maybe to subsequently exclude variables that are too closely correlated?????**    
+
+The dependent variable (SalePrice) looks having decent linearity when plotting with other variables. However, it is also obvious that some independent variables     
+also have linear relationships with each other.    
+The problem of multicollinearity is obvious and should be treated when the quantity of variables in regression formula is huge.    
+
+I picked a few of the variables that had a lot of correlation strengths. Basements have been getting bigger over time, apparently.   
+As have the sizes of the living areas. Good to know!   
+
+
+```{r Pairs1, echo=FALSE}
+
+  pairs(~YearBuilt+OverallQual+TotalBsmtSF+GrLivArea,data=jTraining, main="Simple Scatterplot Matrix")      ### FunWithRE code
+
+```
+
+```{r Pairs2, echo=FALSE}
+
+pairs(~SalePrice+OverallQual+TotalBsmtSF+GarageCars+GarageArea,data=jTraining, main="Scatterplot Matrix")  ### XGBoost code
+
+```
+
+```{r Pairs3, echo=FALSE}
+
+#Too many!!!
+pairs(~SalePrice+GrLivArea+OverallQual+TotalBsmtSF+X1stFlrSF+GarageArea+YearBuilt,data=jTraining, main="Scatterplot Matrix")  ### XGBoost code
+
+```
+
+
+## Scatter plots
+
+What are scatterplots??? What are they actually showing?
+I'm also interested in the relationship between sale price and some numeric variables, but these can be tougher to visualize.
+
+```{r Scatter1, echo=FALSE}
+
+scatterplot(SalePrice ~ YearBuilt, data=jTraining,  xlab="Year Built", ylab="Sale Price", grid=FALSE)
+
+```
+
+```{r Scatter2, echo=FALSE}
+
+scatterplot(SalePrice ~ YrSold, data=jTraining,  xlab="Year Sold", ylab="Sale Price", grid=FALSE)
+
+```
+
+```{r Scatter3, echo=FALSE}
+
+scatterplot(SalePrice ~ X1stFlrSF, data=jTraining,  xlab="Square Footage Floor 1", ylab="Sale Price", grid=FALSE)
+
+```
+
+
+## Sale Price vs. Year Built
+Newer houses worth more
+
+The final descriptive analysis I put here would be the relationship between the variable YearBuilt and SalePrice.
+Merge below with first scatter plot????
+
+
+```{r PriceVsYear, echo=FALSE, message=FALSE}
+
+ggplot(train,aes(x= YearBuilt,y=SalePrice))+
+  geom_point()+
+  geom_smooth()
+
+```
+
+
+It is not difficult to find that the price of house increases generally with the year built, the trend is obvious. 
+Prices are higher for new houses, that makes sense. Also, we can see that sale prices dropped when we would expect.
+We also have some strange outliers on first floor square footage - probably bad data but it's not going to have a huge influence.
+
+## Summary
+Based on the above data exploration, it makes sense to use a reduced list of XYZ variables going forward in the creation of the models.
+
+
+\newpage
+# Analysis and Model Creation
+
+## Average Sale Price
+
+`r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
+The analysis will start with the simplest model where the predicted Sale Price is the average of all given Sale Prices.
+
+`r text_spec("Model",  color = "#d2691e", font_size= 10)`
+$$Y_{u,i}=\mu+\varepsilon_{u,i}$$
+
+where $\varepsilon_{u,i}$ are the independent errors sampled from the same distribution.
+
+`r text_spec("Prediction",  color = "#d2691e", font_size= 10)`
+$$\hat{y}_{u,i}=\hat{\mu}$$
+
+`r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
+```{r RMSE-summary-1, echo=FALSE}
+rmse_results[1:1,] %>% 
+  kbl() %>%
+  kable_styling(full_width = FALSE, position="left")
+```
+
+###### $\color{white}{\text{Line Breaker hack!!}}$  
+
+## Linear Model
+
+`r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
+Finally, we have our data and can build the first proper model. Since our outcome is a continuous numeric variable, we want a linear model, not a GLM.
+
+`r text_spec("Model",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
+```{r RMSE-summary-2, echo=FALSE}
+rmse_results[1:2,] %>% 
+  kbl() %>%
+  kable_styling(full_width = FALSE, position="left")
+```
+
+###### $\color{white}{\text{Line Breaker hack!!}}$  
+
+## LASSO regression
+
+### Model 1
+`r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("Model",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
+```{r RMSE-summary-3, echo=FALSE}
+rmse_results[1:3,] %>% 
+  kbl() %>%
+  kable_styling(full_width = FALSE, position="left")
+```
+
+###### $\color{white}{\text{Line Breaker hack!!}}$  
+
+### Model 2
+`r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("Model",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
+```{r RMSE-summary-4, echo=FALSE}
+rmse_results[1:4,] %>% 
+  kbl() %>%
+  kable_styling(full_width = FALSE, position="left")
+```
+
+###### $\color{white}{\text{Line Breaker hack!!}}$  
+
+## Random Forest
+`r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("Model",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
+```{r RMSE-summary-5, echo=FALSE}
+rmse_results[1:5,] %>% 
+  kbl() %>%
+  kable_styling(full_width = FALSE, position="left")
+```
+
+###### $\color{white}{\text{Line Breaker hack!!}}$  
+
+## XGB - eXtreme Graded Boost
+`r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("Model",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
+```{r RMSE-summary-6, echo=FALSE}
+rmse_results[1:6,] %>% 
+  kbl() %>%
+  kable_styling(full_width = FALSE, position="left")
+```
+
+###### $\color{white}{\text{Line Breaker hack!!}}$  
+
+## Final Validation
+`r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("Model",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
+XXX
+
+`r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
+```{r RMSE-summary-7, echo=FALSE}
+rmse_results[1:7,] %>% 
+  kbl() %>%
+  kable_styling(full_width = FALSE, position="left")
+```
+
+###### $\color{white}{\text{Line Breaker hack!!}}$  
+
+\newpage
+# Results
+`r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
+```{r RMSE-summary-8, echo=FALSE}
+rmse_results %>% 
+  kbl() %>%
+  kable_styling(full_width = FALSE, position="left")
+```
+
+###### $\color{white}{\text{Line Breaker hack!!}}$  
+
+\newpage
+# Conclusion
+Through the gradual increase in complexity of the model, the Regularized Movie and User Effect model produced an improvement of nearly 19% over the original model.
+
+I believe with more work using the regularized techniques being applied to the Time and Genre effects, the overall model could be further improved.
+
+Running the analysis on a relatively old PC also caused a few issues and for the further work (suggested below) it would warrant upgrading to a more powerful machine.
+
+I would like to take the opportunity to thank the staff and other students at HarvardX for producing a very enjoyable, stimulating and often challenging course. In particular I would like to thank Prof. Irizarry for his knowledge and clarity with the online videos and assessment material.
+
+Whilst I was aware of the topics of r, probability and regression from my former studies it has been many years since I have used them and the topics of wrangling and machine learning were completely new to me. They were topics that I thoroughly enjoyed learning albeit at a level that I know is just scratching the surface. I believe my data science journey has just begun...
+
+(Un)fortunately due to my current job situation, I was able to complete the course in a shorter than recommended period. I believe this was ultimately very beneficial to me and allowed me to keep a high level of focus. I'm not sure I would have managed to study so hard and maintain a full time job at the same time had the situation occurred!!
+
+
+## Limitations
+Small data set
 
 ## Future Work
+Whilst the above analysis has already produced a lot of insights and a meaningful model, further investigations could be carried out along the following lines:   
+
+* Find a better way to pick different variables - correlations
+* Extend the data to other areas of the country
+* Increase data size
+* Speak with real estate agents to see if there is other data that could/should be incorporated/ignored
+* Real Estate special sauce
+  + Add something here....   
+  + And here...
+    - What's happening here??
+    - And here ???
+* Go back further in time
+
+* The following points relate to the actual analysis that is performed:   
+  + Factor analysis   
+    - Repeat analysis with a larger dataset - PC already blows up with a relatively small data set   
+    - Use the recommenderlab package to extend the type of analysis performed   
+  + Explore other (currently) unknown models/techniques 
+  + Ensemble model
+  + PCA
+  + Neural network - look at the tutorial
 
 
-## Appendix
 
-### A.1 Boruta Importance Analysis
+
+\newpage
+\appendix
+# Appendix   
+The following sections provide some background to the analysis that was carried out for this report.   
+
+## Boruta Importance Analysis
 Re: Boruta: this paper  https://www.jstatsoft.org/index.php/jss/article/view/v036i11/v36i11.pdf    explains the underlying algorithm. This is a high-level outline of the algorithm:
 1) A copy is made of each explanatory variable. The values in these copies are permuted to remove any correlation with the target variable. The copies are called Shadow variables.
 2) A random forest model is fitted on this expanded data set.
@@ -107,13 +664,13 @@ Re: Boruta: this paper  https://www.jstatsoft.org/index.php/jss/article/view/v03
 
 Repeat the above steps numerous times. Original attributes that are significantly--statistically--higher then the maximum z-score of shadow attributes are deemed relevant to the prediction. Attributes that are significantly below the maximum z-score of shadow attributes are deemed not relevant.
 
-### A.2 LASSO Regression
+## LASSO Regression
 Explain what it is
 
-### A.3 Random Forest
+## Random Forest
 Explain what a random forest is
 
-### A.4 XGBoost
+## XGBoost
 Explain what a XGBoost is
 https://xgboost.readthedocs.io/en/latest/index.html
 https://xgboost.readthedocs.io/en/latest/R-package/xgboostPresentation.html ->>>>> good intro
@@ -122,9 +679,98 @@ https://xgboost.readthedocs.io/en/latest/R-package/xgboostPresentation.html ->>>
 xgb.train: eXtreme Gradient Boosting Training
 https://www.rdocumentation.org/packages/xgboost/versions/1.4.1.1/topics/xgb.train
 
-### A.5 Cross Validation
+## Cross Validation
+### Background
+###### $\color{white}{\text{Line Breaker hack!!}}$  
+A common goal of machine learning is to find an algorithm that produces predictors $\hat{Y}$ of an outcome $Y$ that minimizes the MSE:
+  
+$$MSE = E \left\{ \frac{1}{N} \sum_{i=i}^{N} (\hat{Y}_i - Y_i)^2 \right\}$$
 
-### A.6 Data Source
+When there is only one dataset, it is possible to estimate the MSE with the observed MSE like this:
 
-### A.7 Course Material
+$$\hat{MSE} = \frac{1}{N} \sum_{i=1}^{N} (\hat{y}_i - y_i)^2$$
+
+These two are referred to as the true error and apparent error, respectively.
+
+There are two important characteristics of the apparent error that should always be kept in mind:
+
+* Because the data is random, the apparent error is a random variable. For example, the given dataset may be a random sample from a larger population. An algorithm may have a lower apparent error than another algorithm due to luck.
+
+* If an algorithm is trained on the same dataset that is used to compute the apparent error, it might result in overtraining. In general, when this action is performed, the apparent error will be an underestimate of the true error.
+
+Cross-validation is a technique that permits the alleviation of both these problems. To understand cross-validation, it helps to think of the true error, a theoretical quantity, as the average of many apparent errors obtained by applying the algorithm to $B$ new random samples of the data, none of them used to train the algorithm. The true error can be thought of as:
+
+$$\frac{1}{B} \sum_{b=1}^{B} \frac{1}{N}  \sum_{i=i}^{N} (\hat{y}_{i}^{b} - y_{i}^{b})^2  $$
+
+with $B$ a large number that can be thought of as practically infinite. As already mentioned, this is a theoretical quantity because there is only one available set of outcomes: $y_1, \dots ,y_n$ . Cross validation is based on the idea of imitating the theoretical setup above as best as possible with the available data. To do this, it is necessary to generate a series of different random samples. There are several approaches that can be employed, but the general idea for all of them is to randomly generate smaller datasets that are not used for training, and instead used to estimate the true error.
+
+For most machine learning algorithms it is necessary to select parameters, let's say $\lambda$, that minimises the value of MSE. It is known that if optimsation and evaluation take place on the training set, overtraining will occur. It is also the golden rule of machine learning to not use the original validation data set and this is where cross-validation is most useful.
+
+### K-fold cross-validation    
+###### $\color{white}{\text{Line Breaker hack!!}}$  
+One of the possibilities (and the one used in the regularization part of this project) is K-fold cross-validation. This technique divides the data into $K$ subsets (folds) of almost equal size. Out of these $K$ folds, one subset is used as a validation set and the others are involved in training the model.
+
+The following describes the complete working procedure of this method:
+
+1. Split the training dataset randomly into K subsets
+
+2. Use K-1 subsets for the training of the model
+
+3. Test the model against that one subset which was left out in the previous step: 
+
+$$\hat{MSE_{b}}(\lambda) = \frac{1}{M}  \sum_{i=1}^{M} (\hat{y}_{i}^{b}(\lambda) - y_{i}^{b})^2 $$
+
+4. Repeat the above steps $K$ times i.e. until the model is trained and tested on all subsets. This generates: 
+
+$$\hat{MSE_{1}}(\lambda) , \hat{MSE_{2}}(\lambda) , \dots , \hat{MSE_{K}}(\lambda)$$
+
+5. Generate an overall prediction error by taking the average of prediction errors in every case:
+
+$$\hat{MSE}(\lambda) = \frac{1}{B} \sum_{b=1}^{K} \hat{MSE_{b}}(\lambda)$$
+
+6. The above method describes one iteration of the process with one value of the tuning parameter $\lambda$ being fixed. In general, the above is repeated with several different values of the tuning parameter to find the optimal value of $\lambda$ that minimises the MSE.
+
+7. Fit the final model with the obtained optimal tuning parameter(s).
+
+8. Finally test the results from the previous step on the original independent validation dataset using the final model. 
+
+In this project, it was decided to use a value of 5 for $K$. Large values of $K$ are preferable because the training data better imitates the original dataset. However, larger values of $K$ will have much slower computation time: for example, 100-fold cross validation will be 10 times slower than 10-fold cross validation. For this reason, the choices of $K=5$ and $K=10$ are popular.
+
+### Other techniques and implementations   
+###### $\color{white}{\text{Line Breaker hack!!}}$   
+One way to improve the variance of the final estimate is to take more samples. To do this, it would no longer require the training set to be partitioned into non-overlapping sets. Instead, just pick $K$ sets of some size at random.
+
+One version of this technique, at each fold, picks observations at random with replacement (which means the same observation can appear twice). This approach has some advantages and is generally referred to as the bootstrap.   
+
+XGB already used cross validation.
+
+
+
+
+## Data Source
+Update with real sources    
+
+Details of the data set used in this report:   
+https://grouplens.org/datasets/movielens/10m/
+
+Details of the institute providing the dataset:   
+https://grouplens.org/
+
+## References
+Link to wikipedia???
+
+Galwey, N. (2014). Introduction to mixed modelling: Beyond regression and   analysis of variance.  
+
+Irizarry, R. A. (2020). Introduction to data science: Data analysis and    prediction algorithms with R. https://doi.org/10.1201/9780429341830
+
+Viswanathan, V. (2015). R data analysis cookbook: Over 80 recipes to help you breeze through your data analysis projects using R. 
+
+## Course Material
+Links to edX and HarvardX:   
+https://www.edx.org    
+https://www.edx.org/school/harvardx
+
+Link to this course (including some of the theory quoted above):   
+https://www.edx.org/professional-certificate/harvardx-data-science
+
 

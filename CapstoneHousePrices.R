@@ -46,7 +46,7 @@ library(lars)
 library(kableExtra)
 
 ###Download data
-dl <- read_csv("data/train.csv")   #Read in as factors???
+dl <- read_csv("data/train.csv")
 train <- dl
 
 ###Initial Data Clean
@@ -231,13 +231,12 @@ nTent <- nrow(tentative)
 nReject <- nrow(rejected)
 nConfirm <- nrow(confirmed)
 
-#Lot of dependents therefore, I mainly focused on the exploration of numeric
-#variables in this report. The descriptive analysis of dummy variables are mostly finished by drawing box plots. Some dummy variables, like 'Street',
-#are appeared to be ineffective due to the extreme box plot. The numeric variables are sorted out before turning dummy variables into numeric form.
+#Lot of dependents therefore mainly focus on the exploration of numeric variables to begin with. 
+#The numeric variables are explored first before turning some of the important character variables into numeric form.
 
 #All original numeric values
 correlations <- cor(jTraining[, numberCols],use="everything")
-corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(correlations, method = "circle", type="lower",  sig.level = 0.01, insig = "blank")
 
 #13 of the 35 (36) variables are of interest (high correlations with SalePrice)
 NamesInterest1 <- names(which(correlations["SalePrice", ] > 0.35))
@@ -247,7 +246,7 @@ NamesInterest1 <- NamesInterest1[!NamesInterest1 %in% "SalePrice"] #Remove SaleP
 numeric_confirmed <- intersect(confirmed_tib, numberCols)
 numeric_confirmed_SalePrice <- c(numeric_confirmed, "SalePrice")
 correlations <- cor(jTraining[, numeric_confirmed_SalePrice],use="everything") #Columns that were originally numeric
-corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(correlations, method = "circle", type="lower",  sig.level = 0.01, insig = "blank")
 
 #12 of the 23 (24) variables are of interest (high correlations with SalePrice)
 NamesInterest2 <- names(which(correlations["SalePrice", ] > 0.35))
@@ -258,8 +257,7 @@ NamesInterest2 <- NamesInterest2[!NamesInterest2 %in% "SalePrice"] #Remove SaleP
 charCols <- attr.data.types$character
 char_confirmed <- intersect(confirmed_tib, charCols)
 
-
-#Let's convert those to factors and then run one more set of correlations -> ALSO DOING THIS IN jTESTING and jFINAL data sets
+#Convert those to factors and then run one more set of correlations -> ALSO DOING THIS IN jTESTING and jFINAL data sets for later on
 #GarageType
 price <- jTraining %>%
   group_by(GarageType) %>%
@@ -423,65 +421,31 @@ names(jFinal)
 charCols <- c("jGarageType", "jKitchenQual", "jExterQual", "jMSZoning", "jNeighborhood")
 charColsSP <- c(charCols, "SalePrice")
 correlations <- cor(jTraining[, charColsSP],use="everything")
-corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(correlations, method ="circle", type="lower",  sig.level = 0.01, insig = "blank")
 
-#Fun with Real Estate commentary
-#Another thing I want to do is build some interactions that may be worth looking at. 
-#For example, if the house has a pool, is it more important that it has a big deck, or something like that? 
-#I used correlation visuals like this to do it- you can choose what you'd want to put in and how many variations
-#you want to make.
+#Scatterplot charts - Showing relationship between SalePrice and a few numeric variables
+scatterplot(SalePrice ~ YearBuilt, data = jTraining,  xlab = "Year Built" , ylab = "Sale Price", grid=FALSE)
+scatterplot(SalePrice ~ YrSold, data = jTraining,  xlab = "Year Sold", ylab = "Sale Price", grid=FALSE)
+scatterplot(SalePrice ~ X1stFlrSF, data = jTraining,  xlab="1st Floor Square Footage", ylab="Sale Price", grid=FALSE)
 
-#XGB commentary on cor
-#'OverallQual','TotalBsmtSF','GarageCars' and 'GarageArea' have relative strong correlation with each other.
-#Therefore, as an example, we plot the correlation among those four variables and SalePrice.
-#Jon - ADD OTHERS IN - 1stFlrSF and GrLivArea
-
-#Come up with an overall list of variable we will include...
-#Confirmed, numeric plus 5 character ones
-
-
-
-
-##Simple scatterplot matrix (pairs) + 1 from XGBoost (pairs)
-###### What is a scatterplot matrix???? What is "pairs"??? Maybe to subsequently exclude variables that are too closely correlated?????
-
-#The dependent variable (SalePrice) looks having decent linearity when plotting with other variables. However, it is also obvious that some independent variables 
-#also have linear relationships with each other.
-#The problem of multicollinearity is obvious and should be treated when the quantity of variables in regression formula is huge.
-
-#I picked a few of the variables that had a lot of correlation strengths. Basements have been getting bigger over time, apparently.
-#As have the sizes of the living areas. Good to know!
-
-pairs(~YearBuilt+OverallQual+TotalBsmtSF+GrLivArea,data=jTraining, main="Simple Scatterplot Matrix")      ### FunWithRE code
-pairs(~SalePrice+OverallQual+TotalBsmtSF+GarageCars+GarageArea,data=jTraining, main="Scatterplot Matrix")  ### XGBoost code
-
-#Too many!!!
-pairs(~SalePrice+GrLivArea+OverallQual+TotalBsmtSF+X1stFlrSF+GarageArea+YearBuilt,data=jTraining, main="Scatterplot Matrix")  ### XGBoost code
-
-
-##3 scatterplot charts - not sure if they really show anything!!
-####### What are scatterplots??? What are they actually showing?
-#I'm also interested in the relationship between sale price and some numeric variables, but these can be tougher to visualize.
-scatterplot(SalePrice ~ YearBuilt, data=jTraining,  xlab="Year Built", ylab="Sale Price", grid=FALSE)
-scatterplot(SalePrice ~ YrSold, data=jTraining,  xlab="Year Sold", ylab="Sale Price", grid=FALSE)
-scatterplot(SalePrice ~ X1stFlrSF, data=jTraining,  xlab="Square Footage Floor 1", ylab="Sale Price", grid=FALSE)
-
-## Sales Price vs. Year Built => newer houses worth more
-#The final descriptive analysis I put here would be the relationship between the variable YearBuilt and SalePrice.
-#Merge below with first scatter plot
-
-ggplot(jTraining,aes(x= YearBuilt,y=SalePrice))+
-  geom_point()+
-  geom_smooth()
-
-#It is not difficult to find that the price of house increases generally with the year built, the trend is obvious. 
-#Prices are higher for new houses, that makes sense. Also, we can see that sale prices dropped when we would expect.
+#Newer houses are worth more. It is not difficult to see that the price of house increases generally with the year built, the trend is obvious. Prices are higher for new houses, that makes sense.
+#Dip in the prices sold in 2008 , makes sense as coincides with the financial crisis 
 #We also have some strange outliers on first floor square footage - probably bad data but it's not going to have a huge influence.
 
+#Pairs analysis
+pairs(~YearBuilt+OverallQual+TotalBsmtSF+GrLivArea , data = jTraining , main = "Scatterplot Matrix")
+pairs(~OverallQual+TotalBsmtSF+GarageCars+GarageArea , data = jTraining, main = "Scatterplot Matrix")
+pairs(~GrLivArea+OverallQual+TotalBsmtSF+X1stFlrSF+GarageArea+YearBuilt , data = jTraining , main = "Scatterplot Matrix")  ### Too many!!
 
+#Based on the above data exploration, it makes sense to use a reduced list of variables going forward in the creation of the models.
+#The following sets of data will be used in building the models
+numberCols
 
-#Based on the above data exploration, it makes sense to use a reduced list of XYZ variables going forward in the creation of the models
+NamesInterest1
 
+charCols
+
+#SalePrice
 
 ###Create Models
 
@@ -500,14 +464,13 @@ rmse_results <- tibble(Model = "Average Sale Price", "Log RMSE" = rmse_mu)
 rmse_results %>% knitr::kable()
 
 ##Linear Model - Important Variables
-#Finally, we have our data and can build some models. Since our outcome is a continuous numeric variable, 
-#we want a linear model, not a GLM.
+#Since the outcome is a continuous numeric variable, use a linear model, not a GLM.
 model_lm <- lm(SalePrice ~ ., data=jTraining[, c(NamesInterest1, charCols , "SalePrice")])
 summary(model_lm)
 
 prediction_lm <- predict(model_lm, jTesting, type="response")
 
-#The R Square is not bad, and all variables pass the Hypothesis Test. The diagonsis of residuals is also not bad. The diagnosis can be viewed below.
+#The R Square is not bad, and all variables pass the Hypothesis Test. The diagnosis of residuals is also not bad. The diagnosis can be viewed below.
 layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE))
 plot(model_lm)
 par(mfrow=c(1,1))
@@ -524,8 +487,8 @@ rmse_results <- bind_rows(rmse_results,
 rmse_results %>% knitr::kable()
 
 ###LASSO Regression - 1- Numeric Columns
-#For the avoidance of multicollinearity, implementing LASSO regression is not a bad idea. Transferring the variables into the form of matrix, we can automate
-#the selection of variables by implementing 'lars' method in Lars package.
+#For the avoidance of multicollinearity, implementing LASSO regression is not a bad idea.
+#Transferring the variables into the form of a matrix, the selection of variables is automatically carried out by implementing 'lars' method in Lars package.
 
 Independent_variable <- jTraining[, numberCols]
 Independent_variable$SalePrice <- NULL   #Remove SalePrice

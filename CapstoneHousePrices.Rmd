@@ -240,17 +240,16 @@ The data covered `r iNeighbors` neighborhoods in Ames????
 
 After partitioning, the Final Validation data had `r iFinal` rows, the Testing data had `r iTesting` rows and the Training data had `r iTraining` rows.
 
-The training data covered properties built from `r old_prop` to `r new_prop` with Sale Prices ranging from as low as `r low_sale` to `r high_sale`. The training data captured actual sales from `r early_sale` to `r late_sale`.
+The training data covered properties built from `r old_prop` to `r new_prop` with Sale Prices ranging from as low as USD `r low_sale` to USD `r high_sale`. The training data captured actual sales from `r early_sale` to `r late_sale`.
 
 Of the `r cRaw -2` potential predictor columns, `r iChara` were characters and the remaining `r iNum` were numeric. Later on in the analysis, some of the key character variables will be converted to numerical values to assist with the algorithm building.
 
 
-```{r NumOfSalesPerNeighborhood, fig.cap="Location of Sales",     fig.width=5,  fig.height=3.333 ,   fig.align='left', echo=FALSE}
+```{r NumOfSalesPerNeighborhood, fig.cap="\\label{NumOfSalesPerNeighborhood}Location of Sales",     fig.width=5,  fig.height=3.333 ,   fig.align='left', echo=FALSE}
 
 plotSalesNeighborhood %>%
   ggplot(aes(x=Neighborhood, y=count))+
   geom_bar(stat = "identity", fill="steelblue")+
-  ggtitle("Number of Sales per Neighborhood")+
   xlab("Neighborhood")+
   ylab("Number of Sales")+ 
   theme_minimal()+
@@ -259,31 +258,25 @@ plotSalesNeighborhood %>%
   theme(plot.title = element_text(size=40))
 ```
 
-The above chart shows that sales occurred in many different neighborhoods and so this should be an indicator that it will be an important factor in the algorithm.
+\autoref{NumOfSalesPerNeighborhood} shows that sales occurred in many different neighborhoods and so this should be an indicator that it will be an important factor in the algorithm.
 
 
 ## Boruta Importance Analysis
 Exploring the dataset could be difficult when the number of variables is as large as it is i.e. `r cRaw -2`. As a result, it makes sense to start with a so called Boruta Feature Importance analysis to show which items are deemed important. See appendix for details of the analysis.
 
-```{r BorutaImportanceAnalysis , fig.width=5,  fig.height=3.333 ,   fig.align='left', echo=FALSE}
+```{r BorutaImportanceAnalysis , fig.cap="\\label{BorutaImportanceAnalysis}Boruta Importance Analysis" ,   fig.align='left', echo=FALSE}
 
 plot(bor.results)
 
 ```
 
-The above plot shows the relative importance of each candidate explanatory attribute.
+
+\autoref{BorutaImportanceAnalysis} shows the relative importance of each candidate explanatory attribute.
 The x-axis represents each of candidate explanatory variables.
 Green color indicates the attributes that are relevant to prediction.
 Red indicates attributes that are not relevant.
 Yellow color indicates attributes that may or may not be relevant to predicting the response variable.
 
-The below table lists all of the variables with their "importance"
-
-```{r importancetable, echo=FALSE}
-
-impTable %>% knitr::kable() #'simple')
-
-```
 
 
 ```{r, echo=FALSE}
@@ -306,16 +299,45 @@ impTable %>% knitr::kable() #'simple')
 
 Of the `r cRaw -2` variables, `r iConfirm` were deemed important, `r iReject` were deemed not important and the remaining `r iTent` were considered "tentative".
 
+\autoref{confirmedtable}, \autoref{tentativetable} and \autoref{rejectedtable}  list all of the variables with their "importance".    
 
-## Correlations
-Extending the theme of important variables, looking first at all the numeric values.   
-Lot of dependents therefore, I mainly focused on the exploration of numeric
-variables in this report. The descriptive analysis of dummy variables are mostly finished by drawing box plots. Some dummy variables, like 'Street',
-are appeared to be ineffective due to the extreme box plot. The numeric variables are sorted out before turning dummy variables into numeric form.
+```{r confirmedtable,    echo=FALSE}
+
+impTable %>% 
+  filter(decision == "Confirmed") %>%
+  select("medianImp", "decision") %>%
+  knitr::kable(caption="\\label{confirmedtable}Confirmed Variables") #'simple')
+
+```
+
+```{r tentativetable,    echo=FALSE}
+
+impTable %>% 
+  filter(decision == "Tentative") %>%
+  select("medianImp", "decision") %>%
+  knitr::kable(caption="\\label{tentativetable}Tentative Variables") #'simple')
+
+```
+
+```{r rejectedtable,    echo=FALSE}
+
+impTable %>% 
+  filter(decision == "Rejected") %>%
+  select("medianImp", "decision") %>%
+  knitr::kable(caption="\\label{rejectedtable}Rejected Variables") #'simple')
+
+```
+
+
+
+
+## Correlations    
+Lot of dependents therefore mainly focused on the exploration of numeric variables to begin with using correlation plots.
+The numeric variables are sorted out before turning some of the important character variables into numeric form.
 
 All original numeric values
 
-```{r corNumerical, echo=FALSE}
+```{r corNumerical, fig.cap="\\label{corNumerical}Correlation Matrix for Numerical Variables",  echo=FALSE}
 
 correlations <- cor(jTraining[, numberCols],use="everything")
 corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
@@ -323,135 +345,108 @@ corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig =
 ```
 
 
-From the above 13 of the numeric variables were considered important (correlation > 0.35) and this ties in with the Bawewrfsdfdsfs analysis
+\autoref{corNumerical} shows that 13 of the numeric variables were considered important (correlation > 0.35) and this ties in with the Boruta analysis. \autoref{NamesOfInterest} lists these variables.
 
 ```{r NamesOfInterest, echo=FALSE}
 
-NamesInterest1 %>% knitr::kable() #'simple')
+NamesInterest1 %>% knitr::kable(caption="\\label{NamesOfInterest}Important Numeric Variables") #'simple')
 
 
 ```
 
 
-
 ## Further cleaning of data and correlations
-From the Boruta analysis, of the top 20 variables only 5 are character variables. After converting to numerical values, the correlations with salePrice are high.
+From the Boruta analysis, of the top 20 variables only 5 are character variables. After converting to numerical values, the correlations with salePrice are high. See \autoref{corChars}.
 
-```{r corCharacter, echo=FALSE}
+```{r corChars, fig.cap="\\label{corChars}Correlation Matrix for Character Variables", , echo=FALSE}
 
 correlations <- cor(jTraining[, charColsSP],use="everything")
 corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
 
 ```
 
+\autoref{CharactersOfInterest} lists these variables.    
+
 
 ```{r CharactersOfInterest, echo=FALSE}
 
-charCols %>% knitr::kable() #'simple')
+charCols %>% knitr::kable(caption="\\label{CharactersOfInterest}Important Character Variables") #'simple')
 
 
 ```
 
-
-
-**Fun with Real Estate commentary**    
-Another thing I want to do is build some interactions that may be worth looking at.   
-For example, if the house has a pool, is it more important that it has a big deck, or something like that?    
-I used correlation visuals like this to do it- you can choose what you'd want to put in and how many variations    
-you want to make.   
-
-**XGB commentary on cor**    
-'OverallQual','TotalBsmtSF','GarageCars' and 'GarageArea' have relative strong correlation with each other.     
-Therefore, as an example, we plot the correlation among those four variables and SalePrice.     
-Jon - ADD OTHERS IN - 1stFlrSF and GrLivArea    
-
-**Come up with an overall list of variable we will include...**     
-Confirmed, numeric plus 5 character ones
-
-
-
-
-## Pairs analysis
-
-Simple scatterplot matrix (pairs) + 1 from XGBoost (pairs)
-
-**What is a scatterplot matrix???? What is "pairs"??? Maybe to subsequently exclude variables that are too closely correlated?????**    
-
-The dependent variable (SalePrice) looks having decent linearity when plotting with other variables. However, it is also obvious that some independent variables     
-also have linear relationships with each other.    
-The problem of multicollinearity is obvious and should be treated when the quantity of variables in regression formula is huge.    
-
-I picked a few of the variables that had a lot of correlation strengths. Basements have been getting bigger over time, apparently.   
-As have the sizes of the living areas. Good to know!   
-
-
-```{r Pairs1, echo=FALSE}
-
-  pairs(~YearBuilt+OverallQual+TotalBsmtSF+GrLivArea,data=jTraining, main="Simple Scatterplot Matrix")      ### FunWithRE code
-
-```
-
-```{r Pairs2, echo=FALSE}
-
-pairs(~SalePrice+OverallQual+TotalBsmtSF+GarageCars+GarageArea,data=jTraining, main="Scatterplot Matrix")  ### XGBoost code
-
-```
-
-```{r Pairs3, echo=FALSE}
-
-#Too many!!!
-pairs(~SalePrice+GrLivArea+OverallQual+TotalBsmtSF+X1stFlrSF+GarageArea+YearBuilt,data=jTraining, main="Scatterplot Matrix")  ### XGBoost code
-
-```
 
 
 ## Scatter plots
+The correlation chart (\autoref{corNumerical}) indicates there is a relationship between the sale price and some numeric variables, but what the relationship is is unknown. Using simple scatter plots the relationships (or not) can be more easily seen. See \autoref{Scatter1}, \autoref{Scatter2} and \autoref{Scatter3}.  
 
-What are scatterplots??? What are they actually showing?
-I'm also interested in the relationship between sale price and some numeric variables, but these can be tougher to visualize.
+```{r Scatter1, fig.cap="\\label{Scatter1}Sale Price vs. Year Built",  echo=FALSE}
 
-```{r Scatter1, echo=FALSE}
-
-scatterplot(SalePrice ~ YearBuilt, data=jTraining,  xlab="Year Built", ylab="Sale Price", grid=FALSE)
+scatterplot(SalePrice ~ YearBuilt, data = jTraining,  xlab = "Year Built", ylab = "Sale Price", grid = FALSE)
 
 ```
 
-```{r Scatter2, echo=FALSE}
+\autoref{Scatter1} shows that newer houses are worth more which makes sense. It is not difficult to see that the price of a property increases generally with the year built, the trend is obvious.
 
-scatterplot(SalePrice ~ YrSold, data=jTraining,  xlab="Year Sold", ylab="Sale Price", grid=FALSE)
 
-```
+```{r Scatter2, fig.cap="\\label{Scatter2}Sale Price vs. Year Sold",  echo=FALSE}
 
-```{r Scatter3, echo=FALSE}
-
-scatterplot(SalePrice ~ X1stFlrSF, data=jTraining,  xlab="Square Footage Floor 1", ylab="Sale Price", grid=FALSE)
+scatterplot(SalePrice ~ YrSold, data = jTraining,  xlab = "Year Sold", ylab = "Sale Price", grid = FALSE)
 
 ```
 
+\autoref{Scatter2} shows that sale prices dip in 2008 (during the financial crisis) but overall Year of Sale doesn't appear to be a major driver.
 
-## Sale Price vs. Year Built
-Newer houses worth more
+```{r Scatter3, fig.cap="\\label{Scatter3}Sale Price vs. 1st Floor Square Footage",  echo=FALSE}
 
-The final descriptive analysis I put here would be the relationship between the variable YearBuilt and SalePrice.
-Merge below with first scatter plot????
-
-
-```{r PriceVsYear, echo=FALSE, message=FALSE}
-
-ggplot(jTraining , aes(x = YearBuilt , y = SalePrice))+
-  geom_point()+
-  geom_smooth()
+scatterplot(SalePrice ~ X1stFlrSF, data = jTraining,  xlab = "1st Floor Square Footage", ylab = "Sale Price", grid = FALSE)
 
 ```
 
 
-It is not difficult to find that the price of house increases generally with the year built, the trend is obvious. 
-Prices are higher for new houses, that makes sense. Also, we can see that sale prices dropped when we would expect.
-We also have some strange outliers on first floor square footage - probably bad data but it's not going to have a huge influence.
+\autoref{Scatter3} shows there were some strange outliers on first floor square footage - it maybe bad data but they should not have a huge influence.
+
+
+## Pairs analysis
+Using a scatterplot matrix to observe the bivariate relationship between different combinations of variables is useful. Each scatter plot in the matrix visualizes the relationship between a pair of variables, allowing many relationships to be explored in one chart.
+
+The earlier correlation plots show that the SalesPrice is well correlated with a number of the independent variables. From \autoref{Pairs3} it can be observed that some of the independent variables of interest also have high correlation with each other. An extreme case of correlated variables produces multicollinearity - a condition in which there is redundancy among the predictor variables (Perfect multicollinearity occurs when one predictor variable can be expressed as a linear combination of others.) The problem of multicollinearity is clear and should be addressed if necessary - variables should be removed until the multicollinearity is gone. 
+
+
+<!-- ```{r Pairs1, echo=FALSE} -->
+
+<!--   pairs(~YearBuilt+OverallQual+TotalBsmtSF+GrLivArea , data = jTraining , main = "Scatterplot Matrix") -->
+
+<!-- ``` -->
+
+<!-- ```{r Pairs2, echo=FALSE} -->
+
+<!--   pairs(~OverallQual+TotalBsmtSF+GarageCars+GarageArea , data = jTraining, main = "Scatterplot Matrix") -->
+
+<!-- ``` -->
+
+```{r Pairs3, fig.cap="\\label{Pairs3}Scatterplot Matrix",  echo=FALSE}
+
+  pairs(~GrLivArea+OverallQual+TotalBsmtSF+X1stFlrSF+GarageArea+YearBuilt , data = jTraining )
+
+```
+
 
 ## Summary
-Based on the above data exploration, it makes sense to use a reduced list of XYZ variables going forward in the creation of the models.
+Based on the above data exploration, it makes sense to use a reduced list of variables going forward in the creation of the models. 
+The following sets of data will be used in building the models:
 
+```{r Predictors, echo=TRUE}
+
+numberCols
+
+NamesInterest1
+
+charCols
+
+```
+
+And then the prediction variable itself is SalePrice.
 
 \newpage
 # Analysis and Model Creation
@@ -491,7 +486,7 @@ XXX
 
 The R Square is not bad, and all variables pass the Hypothesis Test. The diagonsis of residuals is also not bad. The diagnosis can be viewed below.
 
-```{r model_lm , echo=FALSE, message=FALSE}
+```{r model_lm , fig.cap="Linear Model",    echo=FALSE, message=FALSE}
 
 layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE))
 plot(model_lm)
@@ -514,9 +509,11 @@ rmse_results[1:2,] %>%
 ###### $\color{white}{\text{Line Breaker hack!!}}$  
 
 ## LASSO regression
-For the avoidance of multicollinearity, implementing LASSO regression (see appendix for background to LASSO) is not a bad idea. Transferring the variables into the form of matrix, we can automate the selection of variables by implementing 'lars' method in Lars package.
+For the avoidance of multicollinearity, implementing LASSO regression (see appendix for background to LASSO) is not a bad idea. 
 
-### Model 1 - Numeric Columns
+Transferring the variables into the form of matrix, we can automate the selection of variables by implementing 'lars' method in Lars package.
+
+### Model 1 - Numeric Variables
 `r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
 XXX
 
@@ -526,7 +523,7 @@ XXX
 `r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
 XXX
 
-```{r model_lars_1 , echo=FALSE, message=FALSE}
+```{r model_lars_1 , fig.cap="Lasso Regression - Numeric Variables",    echo=FALSE, message=FALSE}
 
 plot(model_lars)
 
@@ -556,7 +553,7 @@ XXX
 `r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
 XXX
 
-```{r model_lars_2 , echo=FALSE, message=FALSE}
+```{r model_lars_2 , fig.cap="Lasso Regression - Important Variables" , echo=FALSE, message=FALSE}
 
 plot(model_lars_2)
 
@@ -585,7 +582,7 @@ XXX
 `r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
 XXX
 
-```{r model_rf , echo=FALSE, message=FALSE}
+```{r model_rf , fig.cap="Random Forest model",    echo=FALSE, message=FALSE}
 
 plot(model_rf)
 
@@ -643,15 +640,20 @@ rmse_results[1:7,] %>%
 ###### $\color{white}{\text{Line Breaker hack!!}}$  
 
 \newpage
-# Results
-`r text_spec("RMSE Results",  color = "#d2691e", font_size= 10)`
+# Results    
+
+Definitely need to write some text here about the results.    
+
+
 ```{r RMSE-summary-8, echo=FALSE}
 rmse_results %>% 
-  kbl() %>%
+  kbl(caption = "Overall Results" ) %>%
   kable_styling(full_width = FALSE, position="left")
 ```
 
-###### $\color{white}{\text{Line Breaker hack!!}}$  
+
+
+
 
 \newpage
 # Conclusion
@@ -703,21 +705,41 @@ Whilst the above analysis has already produced a lot of insights and a meaningfu
 The following sections provide some background to the analysis that was carried out for this report.   
 
 ## Boruta Importance Analysis
-Re: Boruta: this paper  https://www.jstatsoft.org/index.php/jss/article/view/v036i11/v36i11.pdf    explains the underlying algorithm. This is a high-level outline of the algorithm:
-1) A copy is made of each explanatory variable. The values in these copies are permuted to remove any correlation with the target variable. The copies are called Shadow variables.
-2) A random forest model is fitted on this expanded data set.
-3) For each variable (the original and Shadow) the Z-score of the loss in accuracy is calculated. The Z-score is the average loss divided by the standard deviation.
-4) Keep track of the original attributes z-score that score higher than the maximum of z-score of the shadow attributes.
+Re: Boruta: this paper  https://www.jstatsoft.org/index.php/jss/article/view/v036i11/v36i11.pdf    explains the underlying algorithm. This is a high-level outline of the algorithm:     
+1) A copy is made of each explanatory variable. The values in these copies are permuted to remove any correlation with the target variable. The copies are called Shadow variables.     
+2) A random forest model is fitted on this expanded data set.     
+3) For each variable (the original and Shadow) the Z-score of the loss in accuracy is calculated. The Z-score is the average loss divided by the standard deviation.     
+4) Keep track of the original attributes z-score that score higher than the maximum of z-score of the shadow attributes.     
 
 Repeat the above steps numerous times. Original attributes that are significantly--statistically--higher then the maximum z-score of shadow attributes are deemed relevant to the prediction. Attributes that are significantly below the maximum z-score of shadow attributes are deemed not relevant.
 
 ## LASSO Regression
 Explain what it is
 
+https://en.wikipedia.org/wiki/Lasso_(statistics)
+
+https://www.statisticshowto.com/lasso-regression/
+
+
+Page 159 and 278 of oreilly
+
 ## Random Forest
 Explain what a random forest is
 
+https://en.wikipedia.org/wiki/Random_forest
+
+https://builtin.com/data-science/random-forest-algorithm
+
+Page 237 of the Practical Stats book - look at bagging and the key ideas
+
+
 ## XGBoost
+https://machinelearningmastery.com/gentle-introduction-xgboost-applied-machine-learning/
+
+https://en.wikipedia.org/wiki/XGBoost
+
+270 of oreilly
+
 Explain what a XGBoost is
 https://xgboost.readthedocs.io/en/latest/index.html
 https://xgboost.readthedocs.io/en/latest/R-package/xgboostPresentation.html ->>>>> good intro
@@ -727,8 +749,7 @@ xgb.train: eXtreme Gradient Boosting Training
 https://www.rdocumentation.org/packages/xgboost/versions/1.4.1.1/topics/xgb.train
 
 ## Cross Validation
-### Background
-###### $\color{white}{\text{Line Breaker hack!!}}$  
+### Background     
 A common goal of machine learning is to find an algorithm that produces predictors $\hat{Y}$ of an outcome $Y$ that minimizes the MSE:
   
 $$MSE = E \left\{ \frac{1}{N} \sum_{i=i}^{N} (\hat{Y}_i - Y_i)^2 \right\}$$
@@ -754,7 +775,6 @@ with $B$ a large number that can be thought of as practically infinite. As alrea
 For most machine learning algorithms it is necessary to select parameters, let's say $\lambda$, that minimises the value of MSE. It is known that if optimsation and evaluation take place on the training set, overtraining will occur. It is also the golden rule of machine learning to not use the original validation data set and this is where cross-validation is most useful.
 
 ### K-fold cross-validation    
-###### $\color{white}{\text{Line Breaker hack!!}}$  
 One of the possibilities (and the one used in the regularization part of this project) is K-fold cross-validation. This technique divides the data into $K$ subsets (folds) of almost equal size. Out of these $K$ folds, one subset is used as a validation set and the others are involved in training the model.
 
 The following describes the complete working procedure of this method:
@@ -783,8 +803,7 @@ $$\hat{MSE}(\lambda) = \frac{1}{B} \sum_{b=1}^{K} \hat{MSE_{b}}(\lambda)$$
 
 In this project, it was decided to use a value of 5 for $K$. Large values of $K$ are preferable because the training data better imitates the original dataset. However, larger values of $K$ will have much slower computation time: for example, 100-fold cross validation will be 10 times slower than 10-fold cross validation. For this reason, the choices of $K=5$ and $K=10$ are popular.
 
-### Other techniques and implementations   
-###### $\color{white}{\text{Line Breaker hack!!}}$   
+### Other techniques and implementations     
 One way to improve the variance of the final estimate is to take more samples. To do this, it would no longer require the training set to be partitioned into non-overlapping sets. Instead, just pick $K$ sets of some size at random.
 
 One version of this technique, at each fold, picks observations at random with replacement (which means the same observation can appear twice). This approach has some advantages and is generally referred to as the bootstrap.   
@@ -811,6 +830,10 @@ Galwey, N. (2014). Introduction to mixed modelling: Beyond regression and   anal
 Irizarry, R. A. (2020). Introduction to data science: Data analysis and    prediction algorithms with R. https://doi.org/10.1201/9780429341830
 
 Viswanathan, V. (2015). R data analysis cookbook: Over 80 recipes to help you breeze through your data analysis projects using R. 
+
+https://en.wikipedia.org/wiki/Random_forest
+https://builtin.com/data-science/random-forest-algorithm
+
 
 ## Course Material
 Links to edX and HarvardX:   

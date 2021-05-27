@@ -49,7 +49,7 @@ Ask a home buyer to describe their dream house, and they probably won't begin wi
 
 With 79 explanatory variables describing (almost) every aspect of residential homes in Ames, Iowa, U.S.A, the aim was to predict the Sale Prices with the highest possible accuracy. 
 
-The Ames Housing dataset (covering sales during the early 2000s) was compiled by Dean De Cock for use in data science education. It's an incredible alternative for data scientists looking for a modernized and expanded version of the often cited Boston Housing dataset. 
+The Ames Housing dataset (covering sales during the early 2000s) was compiled by Dean De Cock for use in data science education. It's an alternative for data scientists looking for a modernized and expanded version of the often cited Boston Housing dataset. 
 
 This report details some of the possible techniques used to predict the Sale Price and how they were built up from first principles.
 
@@ -460,7 +460,7 @@ Along with the prediction variable itself i.e. SalePrice.
 ## Average Sale Price
 
 `r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
-The analysis will start with the simplest model where the predicted Sale Price is the average of all given Sale Prices.
+The analysis will start with the simplest model where the predicted Sale Price is the average of all given Sale Prices. This will produce a maximum RMSE that can be used as the initial reference point to beat.
 
 `r text_spec("Model",  color = "#d2691e", font_size= 10)`
 $$Y_{u,i}=\mu+\varepsilon_{u,i}$$
@@ -593,7 +593,7 @@ XXX
 
 ```{r plot_model_rf , fig.cap="\\label{plot_model_rf}Random Forest model",    echo=FALSE, message=FALSE}
 
-plot(model_rf)
+plot(model_rf, main="")
 
 ```
 
@@ -607,10 +607,13 @@ rmse_results[1:5,] %>%
 
 ###### $\color{white}{\text{Line Breaker hack!!}}$  
 
-## XGB - eXtreme Graded Boost
+## XGBoost (e$X$treme $G$radient $B$oosting)
 `r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
 
-See the appendix for some background on the XGB process
+See the appendix for some background on the XGBoost process
+
+(see appendix [$\color{blue}{\text{(XGBoost)}}$](#xgb) for background to the XGBoost process).
+
 
 `r text_spec("Model",  color = "#d2691e", font_size= 10)`     
 XXX
@@ -629,7 +632,7 @@ rmse_results[1:6,] %>%
 
 ## Final Validation
 `r text_spec("Motivation",  color = "#d2691e", font_size= 10)`     
-As can be seen the XGB method gave the lowest RMSE therefore this is the model that was chosen.
+As can be seen the XGBoost method gave the lowest RMSE therefore this is the model that was chosen.
 
 The model was then tested with the final validation data set to see if the RMSE was in line with expectations.
 
@@ -657,7 +660,10 @@ Definitely need to write some text here about the results.
 ```{r RMSE-summary-8, echo=FALSE}
 rmse_results %>% 
   kbl(caption = "Overall Results" ) %>%
-  kable_styling(full_width = FALSE, position="left")
+  kable_styling("striped", full_width = FALSE) %>%
+  row_spec(0, bold=TRUE, background="#d2691e") %>%
+  column_spec(1, border_left = TRUE) %>%
+  column_spec(2, border_right = TRUE)
 ```
 
 
@@ -666,9 +672,11 @@ rmse_results %>%
 
 \newpage
 # Conclusion
-Through the gradual increase in complexity of the model, the Regularized Movie and User Effect model produced an improvement of nearly 19% over the original model.
+Through the gradual increase in complexity of the models, the XGBoost algorithm produced an improvement of around 89% over the original model.
 
-I believe with more work using the regularized techniques being applied to the Time and Genre effects, the overall model could be further improved.
+Even the linear model, LASSO model and Random Forest model made improvements but the clear "winner" was XGBoost.
+
+I believe with more work on the choice of different predictors the overall model could be further improved. In addition the XGBoost algorithm is so powerful and complex for a beginner in the field, further work on tuning the hyperparameters would yield more success. 
 
 Running the analysis on a relatively old PC also caused a few issues and for the further work (suggested below) it would warrant upgrading to a more powerful machine.
 
@@ -678,33 +686,29 @@ Whilst I was aware of the topics of r, probability and regression from my former
 
 (Un)fortunately due to my current job situation, I was able to complete the course in a shorter than recommended period. I believe this was ultimately very beneficial to me and allowed me to keep a high level of focus. I'm not sure I would have managed to study so hard and maintain a full time job at the same time had the situation occurred!!
 
-
 ## Limitations
-Small data set
+Along with the aforementioned slow PC, a relatively small data set (in terms of rows) might have had an impact on the results. Updating the data set to include sales from 2000 to 2005 and then from 2011 till 2020 would certainly benefit the process.
+
+Aside from the limitations in data, there is also a limitation on the author's knowledge! Further techniques and methods for sure should be explored once the knowledge has improved!
 
 ## Future Work
 Whilst the above analysis has already produced a lot of insights and a meaningful model, further investigations could be carried out along the following lines:   
 
-* Find a better way to pick different variables - correlations
-* Extend the data to other areas of the country
-* Increase data size
-* Speak with real estate agents to see if there is other data that could/should be incorporated/ignored
-* Real Estate special sauce
-  + Add something here....   
-  + And here...
-    - What's happening here??
-    - And here ???
-* Go back further in time
-
-* The following points relate to the actual analysis that is performed:   
-  + Factor analysis   
-    - Repeat analysis with a larger dataset - PC already blows up with a relatively small data set   
-    - Use the recommenderlab package to extend the type of analysis performed   
+* Input Data
+  + Extend the data to other areas of the country - county, state etc.
+  + Increase period of when sales occurred - 2000 to 2005 and 2011 to 2020
+  + Speak with real estate agents to see if there are other predictors that should be incorporated
+  + Is there a way to capture the "Realtor" effect i.e. do the realtors have an inside line on the sale price?
+  + Extend the data to include commercial property
+* Data Manipulation
+  + Combine certain predictors
+  + Give more/less weight to certain predictors
+  + Remove extreme predictor values and sale prices
+* The following points relate to the actual analysis that is performed and the creation of the models:   
+  + Find a better way to pick different variables - Boruta / correlations
+  + Employ neural networks
   + Explore other (currently) unknown models/techniques 
-  + Ensemble model
-  + PCA
-  + Neural network - look at the tutorial
-
+  
 
 
 
@@ -714,21 +718,17 @@ Whilst the above analysis has already produced a lot of insights and a meaningfu
 The following sections provide some background to the analysis that was carried out for this report.   
 
 ## Boruta Importance Analysis{#boruta}
-Earlier in this report, the R package Boruta was used to select all relevant variables from the House Price data set  [$\color{blue}{\text{(Kursa and Rudnicki, 2020)}}$](#references). This section gives a little background to the algorithm. 
+Earlier in this report, the R package Boruta [$\color{blue}{\text{(Kursa and Rudnicki, 2020)}}$](#references) was used to select all relevant variables from the House Price data set. This section gives a little background to the algorithm. 
 
-The original article describes the R package Boruta, implementing a novel feature selection algorithm for finding all relevant variables. The algorithm is designed as a wrapper around a Random Forest classification algorithm. It iteratively removes the features which are proved by a statistical test to be less relevant than random probes. The Boruta package provides a convenient interface to the algorithm. 
+The referenced article describes the R package Boruta, implementing a novel feature selection algorithm for finding all relevant variables. The algorithm is designed as a wrapper around a Random Forest classification algorithm. It iteratively removes the features which are proved by a statistical test to be less relevant than random probes. The Boruta package provides a convenient interface to the algorithm. 
 
-Feature selection is often an important step in applications of machine learning methods and there are good reasons for this. Modern data sets are often described with far too many variables for practical model building. Usually most of these variables are irrelevant to the classification, and obviously their relevance is not known in advance. There are several disadvantages of dealing with overlarge feature sets. One is purely technical - dealing with
-large feature sets slows down algorithms, takes too many resources and is simply inconvenient. Another is even more important - many machine learning algorithms exhibit a decrease of accuracy when the number of variables is significantly higher than optimal (Kohavi and John 1997). Therefore selection of the small (possibly minimal) feature set giving best possible classification results is desirable for practical reasons. This problem, known as minimal - optimal problem (There is a 2007 reference here) has been intensively studied and there are plenty of algorithms which were developed to reduce feature set to a manageable size.
+Feature selection is often an important step in applications of machine learning methods and there are good reasons for this. Modern data sets are often described with far too many variables for practical model building. Usually most of these variables are irrelevant to the classification, and obviously their relevance is not known in advance. There are several disadvantages of dealing with overlarge feature sets. One is purely technical - dealing with large feature sets slows down algorithms, takes too many resources and is simply inconvenient. Another is even more important - many machine learning algorithms exhibit a decrease in accuracy when the number of variables is significantly higher than optimal. Therefore selection of the small (possibly minimal) feature set giving the best possible classification results is desirable for practical reasons.
 
-Nevertheless, this very practical goal shadows another very interesting problem - the identification of all attributes which are in some circumstances relevant for classification, the so-called all-relevant problem. Finding all relevant attributes, instead of only the non-redundant ones, may be very useful in itself. In particular, this is necessary when one is interested in understanding mechanisms related to the subject of interest, instead of merely building a black box predictive model. For example, when dealing with results of gene expression measurements in context of cancer, identification of all genes which are related to cancer is necessary for complete understanding of the process, whereas a minimal-optimal set of genes might be more useful as genetic markers. A good discussion outlining why finding all relevant attributes is important is given by Nilsson et al. (2007).
+Nevertheless, this very practical goal shadows another very interesting problem - the identification of all attributes which are in some circumstances relevant for classification, the so-called all-relevant problem. Finding all relevant attributes, instead of only the non-redundant ones, may be very useful in itself. In particular, this is necessary when one is interested in understanding the mechanisms related to the subject of interest, instead of merely building a black box predictive model.
 
-The all-relevant problem of feature selection is more difficult than usual minimal-optimal one. One reason is that we cannot rely on the classification accuracy as the criterion for selecting the feature as important (or rejecting it as unimportant). The degradation of the classification accuracy, upon removal of the feature from the feature set, is sufficient to declare the feature important, but lack of this effect is not sufficient to declare it unimportant. One therefore needs another criterion for declaring variables important or unimportant. Moreover, one cannot use filtering methods, because the lack of direct correlation between a given feature and the decision is not a proof that this feature is not important in conjunction with the other
-features (Guyon and Elisseeff 2003). One is therefore restricted to wrapper algorithms, which are computationally more demanding than filters.
+The all-relevant problem of feature selection is more difficult than the usual minimal-optimal one. One reason is that we cannot rely on the classification accuracy as the criterion for selecting the feature as important (or rejecting it as unimportant). The degradation of the classification accuracy, upon removal of the feature from the feature set, is sufficient to declare the feature important, but lack of this effect is not sufficient to declare it unimportant. One therefore needs another criterion for declaring variables important or unimportant. Moreover, one cannot use filtering methods, because the lack of direct correlation between a given feature and the decision is not a proof that this feature is not important in conjunction with the other features. One is therefore restricted to wrapper algorithms, which are computationally more demanding than filters.
 
-In a wrapper method the classifier is used as a black box returning a feature ranking, therefore one can use any classifier which can provide the ranking of features. For practical reasons, a classifier used in this problem should be both computationally efficient and simple, possibly without user defined parameters.
-
-The current paper presents an implementation of the algorithm for finding all relevant features in the information system in a R (R Development Core Team 2010) package Boruta (available from the Comprehensive R Archive Network at http://CRAN.R-project.org/package=Boruta). The algorithm uses a wrapper approach built around a random forest (Breiman 2001) classifier (Boruta is a god of the forest in the Slavic mythology). The algorithm is an extension of the idea introduced by Stoppiglia, Dreyfus, Dubois, and Oussar (2003) to determine relevance by comparing the relevance of the real features to that of the random probes. Originally this idea was proposed in the context of filtering, whereas here it is used in the wrapper algorithm. In the remaining sections of this article firstly a short description of the algorithm is given, followed by the examples of its application on a real-world and artificial data set.
+In a wrapper method the classifier is used as a black box returning a feature ranking, therefore one can use any classifier which can provide the ranking of features. For practical reasons, a classifier used in this problem should be both computationally efficient and simple, possibly without user defined parameters. The algorithm uses a wrapper approach built around a random forest (Breiman 2001) classifier.
 
 The following is a high-level outline of the algorithm:     
 
@@ -742,27 +742,20 @@ The following is a high-level outline of the algorithm:
 
 5. Repeat the above steps numerous times. Original attributes that are significantly--statistically--higher then the maximum z-score of shadow attributes are deemed relevant to the prediction. Attributes that are significantly below the maximum z-score of shadow attributes are deemed not relevant.
 
+Boruta is a god of the forest in Slavic mythology!!
 
 ## LASSO Regression{#lasso}
-In statistics and machine learning, lasso (least absolute shrinkage and selection operator; also Lasso or LASSO) is a regression analysis method that performs both variable selection and regularization in order to enhance the prediction accuracy and interpretability of the resulting statistical model. It was originally introduced in geophysics and later by Robert Tibshirani who coined the term. [$\color{blue}{\text{(Wikipedia)}}$](#references)
-
-Lasso was originally formulated for linear regression models. This simple case reveals a substantial amount about the estimator. These include its relationship to ridge regression and best subset selection and the connections between lasso coefficient estimates and so-called soft thresholding. It also reveals that (like standard linear regression) the coefficient estimates do not need to be unique if covariates are collinear.
-
-Though originally defined for linear regression, lasso regularization is easily extended to other statistical models including generalized linear models, generalized estimating equations, proportional hazards models, and M-estimators. Lasso's ability to perform subset selection relies on the form of the constraint and has a variety of interpretations including in terms of geometry, Bayesian statistics and convex analysis.
-
-*From Statistics How To* [$\color{blue}{\text{(From Statistics How To)}}$](#references)
-
-Lasso regression is a type of linear regression that uses shrinkage. Shrinkage is where data values are shrunk towards a central point, like the mean. The lasso procedure encourages simple, sparse models (i.e. models with fewer parameters). This particular type of regression is well-suited for models showing high levels of muticollinearity or when you want to automate certain parts of model selection, like variable selection/parameter elimination.
-
 The acronym “LASSO” stands for Least Absolute Shrinkage and Selection Operator.
 
-Lasso regression performs L1 regularization, which adds a penalty equal to the absolute value of the magnitude of coefficients. This type of regularization can result in sparse models with few coefficients; Some coefficients can become zero and eliminated from the model. Larger penalties result in coefficient values closer to zero, which is the ideal for producing simpler models. On the other hand, L2 regularization (e.g. Ridge regression) doesn’t result in elimination of coefficients or sparse models. This makes the Lasso far easier to interpret than the Ridge.
+In statistics and machine learning, LASSO is a regression analysis method that performs both variable selection and regularization in order to enhance the prediction accuracy and interpretability of the resulting statistical model. It was originally introduced in geophysics and later by Robert Tibshirani who coined the term [$\color{blue}{\text{(Wikipedia)}}$](#references).
 
-Lasso solutions are quadratic programming problems. The goal of the algorithm is to minimize:
+LASSO regression is a type of linear regression that uses shrinkage [$\color{blue}{\text{(From Statistics How To)}}$](#references). Shrinkage is where data values are shrunk towards a central point, like the mean. The LASSO procedure encourages simple, sparse models (i.e. models with fewer parameters). This particular type of regression is well-suited for models showing high levels of muticollinearity or when you want to automate certain parts of model selection, like variable selection/parameter elimination.
 
+LASSO regression performs L1 regularization, which adds a penalty equal to the absolute value of the magnitude of coefficients. This type of regularization can result in sparse models with few coefficients; some coefficients can become zero and eliminated from the model. Larger penalties result in coefficient values closer to zero, which is the ideal for producing simpler models. On the other hand, L2 regularization (e.g. Ridge regression) doesn’t result in elimination of coefficients or sparse models. This makes LASSO far easier to interpret than Ridge.
+
+LASSO solutions are quadratic programming problems. The goal of the algorithm is to minimize:
 $$\sum_{i=i}^{N} (y_{i} - \sum_{j}x_{i,j}\beta_{j})^2+\lambda\sum_{j=1}^{p}\mid\beta_{j}\mid$$
-
-Which is the same as minimizing the sum of squares with constraint $\sum\mid\beta_{j}\mid \le s$  . Some of the $\beta$s are shrunk to exactly zero, resulting in a regression model that is easier to interpret.
+Which is the same as minimizing the sum of squares with constraint $\sum\mid\beta_{j}\mid \le s$ . Where $s$ is a pre-specified parameter that determines the degree of regularization. Some of the $\beta$s are shrunk to exactly zero, resulting in a regression model that is easier to interpret.
 
 A tuning parameter, $\lambda$, controls the strength of the L1 penalty. $\lambda$ is basically the amount of shrinkage:
 
@@ -773,32 +766,29 @@ A tuning parameter, $\lambda$, controls the strength of the L1 penalty. $\lambda
 * If an intercept is included in the model, it is usually left unchanged.
 
 ## Random Forest{#random_forest}
-Random forests are a very popular machine learning approach that addresses the shortcomings of decision trees using a clever idea. The goal is to improve prediction performance and reduce instability by averaging multiple decision trees (a forest of trees constructed with randomness). It has two features that help accomplish this.
+Random forests are a very popular machine learning approach that addresses the shortcomings of decision trees using a clever idea. Random forests are frequently used as "blackbox" models in businesses, as they generate reasonable predictions across a wide range of data while requiring little configuration. 
 
 Random decision forests correct for decision trees' habit of overfitting to their training set. Random forests generally outperform decision trees, but their accuracy is lower than gradient boosted trees (see next section). However, data characteristics can affect their performance [$\color{blue}{\text{(Wikipedia)}}$](#references).
 
-Random forests are frequently used as "blackbox" models in businesses, as they generate reasonable predictions across a wide range of data while requiring little configuration.
+The goal is to improve prediction performance and reduce instability by averaging multiple decision trees (a forest of trees constructed with randomness). It has two features that help accomplish this.
 
-The first step is bootstrap aggregation or bagging. The general idea is to generate many predictors, each using regression or classification trees, and then forming a final prediction based on the average prediction of all these trees. To assure that the individual trees are not the same, bootstrapping is used to induce randomness. These two features combined explain the name: the bootstrap makes the individual trees randomly different, and the combination of trees is the forest. The specific steps are as follows.
+The first step is bootstrap aggregation or bagging. The general idea is to generate many predictors, each using regression or classification trees, and then secondly, forming a final prediction based on the average prediction of all these trees. To assure that the individual trees are not the same, bootstrapping is used to induce randomness. These two features combined explain the name: the bootstrap makes the individual trees **randomly** different, and the combination of trees is the **forest**. The specific steps are as follows:
 
-1. Build $B$ decision trees using the training set. We refer to the fitted models as $T_{1}, T_{2}, \dots , T_{B}$. We later explain how we ensure they are different.
+1. Build $B$ decision trees using the training set. The fitted models are referred to as $T_{1}, T_{2}, \dots , T_{B}$.
 
 2. For every observation in the test set, form a prediction $\hat{y}_{j}$ using tree $T_{j}$.
 
-3. For continuous outcomes, form a final prediction with the average $\hat{y} = \frac{1}{B} \sum_{j=1}^{B} \hat{y}_{j}$. For categorical data classification, predict $\hat{y}$ with majority vote (most frequent class among $\hat{y}_{1}, \dots , \hat{y}_{T}$).
+3. For continuous outcomes, form a final prediction with the average $\hat{y} = \frac{1}{B} \sum_{j=1}^{B} \hat{y}_{j}$. For categorical data classification, predict $\hat{y}$ with a majority vote (most frequent class among $\hat{y}_{1}, \dots , \hat{y}_{T}$).
 
-So how do we get different decision trees from a single training set? For this, we use randomness in two ways which we explain in the steps below. Let $N$ be the number of observations in the training set. To create $T_{j}$, $j=1, \dots , B$ from the training set we do the following:
+Getting different decision trees from a single training is achieved through the following steps and using randomness in two ways. Let $N$ be the number of observations in the training set. To create $T_{j}$, $j=1, \dots , B$ from the training set the following is performed:
 
 1. Create a bootstrap training set by sampling $N$ observations from the training set with replacement. This is the first way to induce randomness.
 
 2. A large number of features is typical in machine learning challenges. Often, many features can be informative but including them all in the model may result in overfitting. The second way random forests induce randomness is by randomly selecting features to be included in the building of each tree. A different random subset is selected for each tree. This reduces correlation between trees in the forest, thereby improving prediction accuracy.
 
-As can be observed in \autoref{plot_model_rf} as more trees are added to the model, the error rate changes, the accuracy improves and with about 80 trees the accuracy stabilizes.
+As can be observed in \autoref{plot_model_rf} as more trees are added to the random forest model for house prices, the error rate changes, the accuracy improves and with about 80 trees the accuracy stabilizes.
 
-Random forest performs better in all the examples we have considered. However, a disadvantage of random forests is that we lose interpretability. An approach that helps with interpretability is to examine variable importance. To define variable importance we count how often a predictor is used in the individual trees. You can learn more about variable importance in an advanced machine learning book109. The caret package includes the function varImp that extracts variable importance from any model in which the calculation is implemented. We give an example on how we use variable importance in the next section.
-
-
-
+Random forests often perform well in most situations. However, a disadvantage of random forests is the loss of interpretability. An approach that helps with interpretability is to examine variable importance. To define variable importance a count is kept of how often a predictor is used in the individual trees. The caret package includes the function varImp that extracts variable importance from any model in which the calculation is implemented.
 
 
 
@@ -808,7 +798,7 @@ Ensemble models have become a standard tool for predictive modeling [$\color{blu
 
 In linear regression models, the residuals are often examined to see if the fit can be improved. Boosting takes this concept much further and fits a series of models, in which each successive model seeks to minimize the error of the previous model. Several variants of the algorithm are commonly use: Adaboost, gradient boosting and stochastic gradient boosting.
 
-The most widely used public domain software for boosting is XGBoost (and the one used in this report). It is an implementation of stochastic gradient boosting that is both computationally efficient and made up of many options/paramters. Two very important parameters are subsample, which controls the fraction of observations that should be sampled at each iteration, and eta, a shrinkage factor applied to $\alpha_{m}$ in the boosting algorithm.
+The most widely used public domain software for boosting is XGBoost (and the one used in this report). It is an implementation of stochastic gradient boosting that is both computationally efficient and made up of many options/paramters. Two very important parameters are subsample, which controls the fraction of observations that should be sampled at each iteration, and eta, a shrinkage factor applied in the boosting algorithm.
 
 Using subsample makes boosting act like the random forest except that the sampling is done without replacement. The shrinkage parameter eta is helpful to prevent overfitting by reducing the change in the weights (a smaller change in the weights means the algorithm is less likely to overfit to the training set).
 
@@ -817,7 +807,7 @@ Using subsample makes boosting act like the random forest except that the sampli
 * Stochastic gradient boosting is the most general type of boosting and offers the best performance. The most common form of stochastic gradient boosting uses tree models.
 * XGBoost is a popular and computationally efficient software package for stochastic gradient boosting; it is available in all common languages used in data science.
 * Boosting is prone to overfitting the data, and the hyperparameters need to be tuned to avoid this.
-* Regularization is one way to avoid overfitting by including a penalty term on the number of parameters ( e.g., tree size) in a model.
+* Regularization is one way to avoid overfitting by including a penalty term on the number of parameters (e.g. tree size) in a model.
 * Cross-validation (see next section) is especially important for boosting due to the large number of hyperparameters that need to be set.
 
 ### Tutorial
@@ -854,7 +844,7 @@ with $B$ a large number that can be thought of as practically infinite. As alrea
 For most machine learning algorithms it is necessary to select parameters, let's say $\lambda$, that minimises the value of MSE. It is known that if optimsation and evaluation take place on the training set, overtraining will occur. It is also the golden rule of machine learning to not use the original validation data set and this is where cross-validation is most useful.
 
 ### K-fold cross-validation    
-One of the possibilities (and the one used in the regularization part of this project) is K-fold cross-validation. This technique divides the data into $K$ subsets (folds) of almost equal size. Out of these $K$ folds, one subset is used as a validation set and the others are involved in training the model.
+One of the possibilities is K-fold cross-validation. This technique divides the data into $K$ subsets (folds) of almost equal size. Out of these $K$ folds, one subset is used as a validation set and the others are involved in training the model.
 
 The following describes the complete working procedure of this method:
 
@@ -880,14 +870,14 @@ $$\hat{MSE}(\lambda) = \frac{1}{B} \sum_{b=1}^{K} \hat{MSE_{b}}(\lambda)$$
 
 8. Finally test the results from the previous step on the original independent validation dataset using the final model. 
 
-In this project, it was decided to use a value of 5 for $K$. Large values of $K$ are preferable because the training data better imitates the original dataset. However, larger values of $K$ will have much slower computation time: for example, 100-fold cross validation will be 10 times slower than 10-fold cross validation. For this reason, the choices of $K=5$ and $K=10$ are popular.
+Large values of $K$ are preferable because the training data better imitates the original dataset. However, larger values of $K$ will have much slower computation time: for example, 100-fold cross validation will be 10 times slower than 10-fold cross validation. For this reason, the choices of $K=5$ and $K=10$ are popular.
 
 ### Other techniques and implementations     
 One way to improve the variance of the final estimate is to take more samples. To do this, it would no longer require the training set to be partitioned into non-overlapping sets. Instead, just pick $K$ sets of some size at random.
 
 One version of this technique, at each fold, picks observations at random with replacement (which means the same observation can appear twice). This approach has some advantages and is generally referred to as the bootstrap.   
 
-XGBoost, used in this report, uses cross validation in its implementation.
+XGBoost, used in this report, uses cross validation as a method in its implementation.
 
 ## Data Source
 The Ames Housing dataset, used in this report, was compiled by Dean De Cock for use in data science education. It's an alternative for data scientists looking for a modernized and expanded version of the often cited Boston Housing dataset. 
@@ -903,7 +893,7 @@ Galwey, N. (2014). Introduction to mixed modelling: Beyond regression and analys
 
 Irizarry, R. A. (2020). Introduction to data science: Data analysis and prediction algorithms with R : [$\color{blue}{\text{https://doi.org/10.1201/9780429341830}}$](https://doi.org/10.1201/9780429341830).
 
-Kaggle : Your home for data science :  [ $\color{blue}{\text{https://www.kaggle.com }}$ ](https://www.kaggle.com )  
+Kaggle: Your home for data science :  [ $\color{blue}{\text{https://www.kaggle.com }}$ ](https://www.kaggle.com )  
 
 Viswanathan, V. (2015). R data analysis cookbook: Over 80 recipes to help you breeze through your data analysis projects using R. 
 

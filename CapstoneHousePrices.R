@@ -211,6 +211,12 @@ getSelectedAttributes(bor.results)
 #Yellow color indicates attributes that may or may not be relevant to predicting the response variable.
 plot(bor.results)
 
+#Playing around with labels
+# ?par
+#plot(bor.results, cex.axis=0.5)
+#plot(bor.results, cex.axis=0.5, las=2, xlab="")
+
+
 #Detailed results for each candidate explanatory attributes.
 impTable <- arrange(cbind(attr=rownames(attStats(bor.results)), attStats(bor.results)),desc(medianImp))
 impTable
@@ -237,6 +243,9 @@ nConfirm <- nrow(confirmed)
 #All original numeric values
 correlations <- cor(jTraining[, numberCols],use="everything")
 corrplot(correlations, method = "circle", type="lower",  sig.level = 0.01, insig = "blank")
+
+#Playing around with label sizes
+#corrplot(correlations, method = "circle", type="lower",  sig.level = 0.01, insig = "blank", tl.cex = 0.4, cl.cex = 5)
 
 #13 of the 35 (36) variables are of interest (high correlations with SalePrice)
 NamesInterest1 <- names(which(correlations["SalePrice", ] > 0.35))

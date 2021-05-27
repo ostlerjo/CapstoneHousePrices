@@ -11,6 +11,10 @@ output:
     number_sections: true
     fig_caption: yes
   html_document: default
+header-includes:
+  \usepackage{float}
+  \floatplacement{figure}{H}
+  \floatplacement{table}{H}
 include-before: '`\newpage{}`{=latex}'
 ---
 
@@ -32,40 +36,47 @@ load(file = "CapstoneHousePrices.RData")
 
 ```
 
+
 \newpage
 # Abstract
-Data science has become the super-power behind the success of many businesses of today.  These companies need and use data science approaches like machine learning to extract patterns, trends, and other actionable information from large data sets (Galwey, 2014).  In turn, companies use these findings to improve performance, grow, and  perhaps most importantly, to provide better products and services to consumers (Irizarry, 2020).
+Data science has become the super-power behind the success of many businesses of today. These companies need and use data science approaches like machine learning to extract patterns, trends and other actionable information from large data sets  [$\color{blue}{\text{(Galwey, 2014)}}$](#references). In turn, companies use these findings to improve performance, grow and, perhaps most importantly, to provide better products and services to consumers [$\color{blue}{\text{(Irizarry, 2020)}}$](#references).
 
-Not surprisingly, recommendation and prediction systems are increasingly used by businesses to provide personalized insights to consumers. Somewhat famously, in 2009 Netflix awarded a $1,000,000 prize to the data science team who improved the streaming giant’s movie recommendation algorithm by 10%.  The Netflix competition was the inspiration for this project and subject of this report. 
+Not surprisingly, prediction and recommendation systems are increasingly used by businesses to provide personalized insights to consumers. Often companies make competitions out of the challenge to stimulate ideas and of course produce a better, workable and dependable model.
 
-The first goal of this project was to create a movie recommendation algorithm and model from a MovieLens dataset from GroupLens utilizing R Markdown in RStudio.  The selected dataset comprises 10 million unique movie ratings (observation).  Code provided within the course parses the dataset into a training set (edx) and a reserved dataset (validation) held for final testing and validation of the resulting algorithm (Galwey, 2014). The second goal, and perhaps most important goal, was to create and train a final algorithm (model) that predicts movie ratings with a RMSE (root mean square error) of less than 0.86490 (Project Target) when compared to the actual ratings of the validation dataset.
+One of the most popular competitions on [$\color{blue}{\text{kaggle}}$](#references) is the "House Prices: Advanced Regression Techniques" competition. This competition was the inspiration for this project and the subject of this report.
 
+Ask a home buyer to describe their dream house, and they probably won't begin with the height of the basement ceiling or the proximity to an east-west railroad. But the dataset used here proves that much more influences price negotiations than the number of bedrooms or a white-picket fence.
 
+With 79 explanatory variables describing (almost) every aspect of residential homes in Ames, Iowa, U.S.A, the aim was to predict the Sale Prices with the highest possible accuracy. 
 
+The Ames Housing dataset (covering sales during the early 2000s) was compiled by Dean De Cock for use in data science education. It's an incredible alternative for data scientists looking for a modernized and expanded version of the often cited Boston Housing dataset. 
 
-One of the most popular competitions on kaggle is the House Prices: Advanced Regression Techniques. The original data comes from the publication Dean De Cock "Ames, Iowa: Alternative to the Boston Housing Data as an End of Semester Regression Project", Journal of Statistics Education, Volume 19, Number 3 (2011). Recently a 'demonstration' notebook has been published "First place is meaningless in this way!" that extracts the 'solution' from the full dataset. Now that the 'solution' is readily available the possibility has opened for people to reproduce the competition at home without any daily submission limit. This will open up the possibility of experimenting with advanced techniques such as pipelines with/or various estimators/models in the same notebook, extensive hyper-parameter tuning etc. And all without the risk of 'upsetting' the public leaderboard. Simply download this solution.csv file and import it into your script or notebook and evaluate the Root-Mean-Squared-Error (RMSE) between the logarithm of the predicted value and the logarithm of the data in this file.    
+This report details some of the possible techniques used to predict the Sale Price and how they were built up from first principles.
 
+The kaggle challenge used the standard error loss function, Root Mean Squared Errors (**RMSE**), based on the logarithms of the predicted and observed sale prices: 
 
-Data was based on the sales of properties in the XXX region of YYYY during the early 2000's etc etc. Trying to predict the Sales Price given the array of predictors such as year built, number of rooms etc. etc.
-
-
-This report details some of the techniques used in the winning solution and how it was built up from first principles.
-
-The Netflix challenge used the standard error loss function, Root Mean Squared Errors (**RMSE**): 
-
-$$RMSE = \sqrt{\frac{1}{N}\sum_{u,i}(\hat{y}_{u,i}-y_{u,i})^2}$$
-with the winner being chosen based on the lowest RMSE value.
+$$RMSE = \sqrt{\frac{1}{N}\sum_{i}^{N}(log(\hat{y}_{i})-log(y_{i}))^2}$$
+with the winner being chosen based on the lowest RMSE value. (Taking logs means that errors in predicting expensive houses and cheap houses will affect the result equally.)
 
 This report shows the evolution of the RMSE value from an initial simple solution to the ultimate solution as more complex models are created.   
 
-The GitHub repository for this report can be found at
-https://github.com/ostlerjo/CapstoneHousePrices.git
+Since the ultimate sale price in the validation data was not provided, this report based its final RMSE value on a sample of the initial training data for validation/verification.
+
+The GitHub repository for this report can be found at : [$\color{blue}{\text{https://github.com/ostlerjo/CapstoneHousePrices.git}}$](https://github.com/ostlerjo/CapstoneHousePrices.git)
+
+
+
+
 
 
 \newpage
 # Introduction
+## Data Used
+The original data comes from the publication Dean De Cock "Ames, Iowa: Alternative to the Boston Housing Data as an End of Semester Regression Project", Journal of Statistics Education, Volume 19, Number 3 (2011). 
 
-## Libraries used
+The data used in this report was obtained from kaggle.com.    
+
+## Libraries Used
 
 ```{r installing-libs, eval=TRUE, echo=FALSE, message=FALSE}
 
@@ -91,7 +102,6 @@ if(!require(lars)) install.packages("lars", repos = "http://cran.us.r-project.or
 if(!require(kableExtra)) install.packages("kableExtra", repos = "http://cran.us.r-project.org")
 
 ```
-
 
 
 The following r libraries were used to generate the data, perform the analysis and create the algorithms detailed in this report:
@@ -121,9 +131,6 @@ library(kableExtra)
 
 ```
 
-## Data used
-Data was obtained from kaggle.com. This is a great source of data sets. The original data set came from XYZ.
-
 
 \newpage
 # Data Cleaning and Preparation
@@ -132,20 +139,23 @@ Data was obtained from kaggle.com. This is a great source of data sets. The orig
 
 Due to the way r treats variable names, three columns were mutated to put a dummy X character in front e.g. 1stFlrSF became X1stFlrSF etc.
 
-Secondly several columns had false NAs in them that would cause the code to give errors e.g. the column "Alley" had a set of NAs which in fact meant "No Alley". As a consequence, all of these types of values were explored and then updated to their correct values.
+Secondly several columns had false NAs in them that would cause the code to give errors e.g. the column "Alley" had a set of NAs which in fact meant "No Alley". As a consequence, all of these types of values were explored and then updated to their correct meaning.
 
 Finally a couple of numeric columns also had NAs when they should in fact mean 0. As a consequence, all of these types of values were updated to be 0 rather than NA.
 
 ## Data Partitioning
-Two sets of data were available i.e. a train set and a test set. Since the data was originally going to be used in a competition to predict Sale Prices, the test set provided did not have a Sale Price column. As a consequence for this project where predictive results needed to be reported, the train data set was used for training, testing and the final validation through partitioning.
+Two sets of data were available i.e. a train set and a test set. Since the data was originally going to be used in a competition to predict the Sale Prices, the test set provided did not have a Sale Price column. As a consequence for this project where predictive results needed to be reported, the train data set was used for training, testing and the final validation through partitioning.
 
 Initially the train set was partitioned into a Modeling set and a Final Validation set. The split was 90% / 10% in favor of the Modeling set. The small percentage assigned to the Final Validation set was because the overall data set did not have so many values (around 1'500) and most of the data should be used for modeling. The Final Validation set was set aside and not used again until the Final RMSE calculation. 
 
 Next the Modeling set was further partitioned into a Training set and a Testing set that would be used for analysis, model creation, training and initial validation. The split was 60 % / 40% in favor of the Training set. The split was chosen to be almost equal but at the same time due to a restricted number of data points, a slightly larger value was assigned to the Training set.
 
+
+
+
 \newpage
 # Data Exploration
-It is a good practice to first understand the data itself before attempting to gather insights or draw conclusions (Viswanathan, 2015). Exploratory data analysis is a necessary and critical process for preforming these initial investigations on data. This process allows investigators to discover patterns, spot anomalies, test hyptheses, and to scrutinize assumptions with the assistance of summary statistics and graphical representations (visualizations).
+It is a good practice to first understand the data itself before attempting to gather insights or draw conclusions [$\color{blue}{\text{(Viswanathan, 2015)}}$](#references). Exploratory data analysis is a necessary and critical process for preforming these initial investigations on data. This process allows investigators to discover patterns, spot anomalies, test hyptheses, and to scrutinize assumptions with the assistance of summary statistics and graphical representations (visualizations).
 
 
 ```{r, echo=FALSE}
@@ -236,7 +246,7 @@ It is a good practice to first understand the data itself before attempting to g
 
 The raw data contained `r rRaw` rows (each representing a sale of a property) and `r cRaw` columns (i.e. an Id, a Sale Price and `r cRaw -2` potential predictors of the Sale Price).
 
-The data covered `r iNeighbors` neighborhoods in Ames????
+The data covered `r iNeighbors` neighborhoods in Ames, Iowa, U.S.A.
 
 After partitioning, the Final Validation data had `r iFinal` rows, the Testing data had `r iTesting` rows and the Training data had `r iTraining` rows.
 
@@ -262,20 +272,22 @@ plotSalesNeighborhood %>%
 
 
 ## Boruta Importance Analysis
-Exploring the dataset could be difficult when the number of variables is as large as it is i.e. `r cRaw -2`. As a result, it makes sense to start with a so called Boruta Feature Importance analysis to show which items are deemed important. See appendix for details of the analysis.
+Exploring the dataset could be difficult when the number of variables is as large as it is i.e. `r cRaw -2`. As a result, it made sense to start with a so called Boruta Feature Importance analysis to show which items are deemed important. See the [$\color{blue}{\text{appendix}}$](#boruta) for more background on how the analysis was performed.
+
 
 ```{r BorutaImportanceAnalysis , fig.cap="\\label{BorutaImportanceAnalysis}Boruta Importance Analysis" ,   fig.align='left', echo=FALSE}
 
-plot(bor.results)
+#plot(bor.results)
+plot(bor.results, cex.axis=0.5, las=2, xlab="")
 
 ```
 
 
 \autoref{BorutaImportanceAnalysis} shows the relative importance of each candidate explanatory attribute.
 The x-axis represents each of candidate explanatory variables.
-Green color indicates the attributes that are relevant to prediction.
-Red indicates attributes that are not relevant.
-Yellow color indicates attributes that may or may not be relevant to predicting the response variable.
+Green boxes indicate the attributes that are relevant to prediction.
+Red boxes indicate attributes that are not relevant.
+Yellow boxes indicate attributes that may or may not be relevant to predicting the Sales Price.
 
 
 
@@ -332,36 +344,32 @@ impTable %>%
 
 
 ## Correlations    
-Lot of dependents therefore mainly focused on the exploration of numeric variables to begin with using correlation plots.
-The numeric variables are sorted out before turning some of the important character variables into numeric form.
-
-All original numeric values
+Due to the large number of predictors, it was decided to initially focus on the exploration of the numeric variables using correlation plots. (Later in this report, the important character variables are considered.)
 
 ```{r corNumerical, fig.cap="\\label{corNumerical}Correlation Matrix for Numerical Variables",  echo=FALSE}
 
 correlations <- cor(jTraining[, numberCols],use="everything")
-corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank", tl.cex = 0.4)
 
 ```
 
 
-\autoref{corNumerical} shows that 13 of the numeric variables were considered important (correlation > 0.35) and this ties in with the Boruta analysis. \autoref{NamesOfInterest} lists these variables.
+\autoref{corNumerical} shows that of the original 35 numeric variables, 13 of them were considered important (correlation > 0.35) and this ties in with the Boruta analysis. \autoref{NamesOfInterest} lists these variables.
 
 ```{r NamesOfInterest, echo=FALSE}
 
-NamesInterest1 %>% knitr::kable(caption="\\label{NamesOfInterest}Important Numeric Variables") #'simple')
-
+NamesInterest1 %>% knitr::kable(col.name=NULL,   caption="\\label{NamesOfInterest}Important Numeric Variables") #'simple')
 
 ```
 
 
-## Further cleaning of data and correlations
-From the Boruta analysis, of the top 20 variables only 5 are character variables. After converting to numerical values, the correlations with salePrice are high. See \autoref{corChars}.
+## Further Cleaning of Data and Correlations
+From the Boruta analysis, of the top 20 variables only 5 were character variables. After converting to numerical values, the correlations with SalePrice are high. See \autoref{corChars}.
 
 ```{r corChars, fig.cap="\\label{corChars}Correlation Matrix for Character Variables", , echo=FALSE}
 
 correlations <- cor(jTraining[, charColsSP],use="everything")
-corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank")
+corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig = "blank", tl.cex = 0.4)
 
 ```
 
@@ -370,14 +378,13 @@ corrplot(correlations, method="circle", type="lower",  sig.level = 0.01, insig =
 
 ```{r CharactersOfInterest, echo=FALSE}
 
-charCols %>% knitr::kable(caption="\\label{CharactersOfInterest}Important Character Variables") #'simple')
-
+charCols %>% knitr::kable(col.name=NULL, caption="\\label{CharactersOfInterest}Important Character Variables") #'simple')
 
 ```
 
 
 
-## Scatter plots
+## Scatter Plots
 The correlation chart (\autoref{corNumerical}) indicates there is a relationship between the sale price and some numeric variables, but what the relationship is is unknown. Using simple scatter plots the relationships (or not) can be more easily seen. See \autoref{Scatter1}, \autoref{Scatter2} and \autoref{Scatter3}.  
 
 ```{r Scatter1, fig.cap="\\label{Scatter1}Sale Price vs. Year Built",  echo=FALSE}
@@ -386,7 +393,7 @@ scatterplot(SalePrice ~ YearBuilt, data = jTraining,  xlab = "Year Built", ylab 
 
 ```
 
-\autoref{Scatter1} shows that newer houses are worth more which makes sense. It is not difficult to see that the price of a property increases generally with the year built, the trend is obvious.
+\autoref{Scatter1} shows that newer houses are worth more which makes sense. It is not difficult to see that the price of a property increases generally with the year built; the trend is obvious.
 
 
 ```{r Scatter2, fig.cap="\\label{Scatter2}Sale Price vs. Year Sold",  echo=FALSE}
@@ -395,7 +402,7 @@ scatterplot(SalePrice ~ YrSold, data = jTraining,  xlab = "Year Sold", ylab = "S
 
 ```
 
-\autoref{Scatter2} shows that sale prices dip in 2008 (during the financial crisis) but overall Year of Sale doesn't appear to be a major driver.
+\autoref{Scatter2} shows that sale prices dip in 2008 (during the financial crisis) but overall Year of Sale doesn't appear to be a major driver and can therefore be excluded.
 
 ```{r Scatter3, fig.cap="\\label{Scatter3}Sale Price vs. 1st Floor Square Footage",  echo=FALSE}
 
@@ -403,14 +410,13 @@ scatterplot(SalePrice ~ X1stFlrSF, data = jTraining,  xlab = "1st Floor Square F
 
 ```
 
+\autoref{Scatter3} shows there were some strange outliers on the influence of first floor square footage on the sale price - it maybe bad data but they should not have a huge influence on the modelling.
 
-\autoref{Scatter3} shows there were some strange outliers on first floor square footage - it maybe bad data but they should not have a huge influence.
 
-
-## Pairs analysis
+## Pairs Analysis
 Using a scatterplot matrix to observe the bivariate relationship between different combinations of variables is useful. Each scatter plot in the matrix visualizes the relationship between a pair of variables, allowing many relationships to be explored in one chart.
 
-The earlier correlation plots show that the SalesPrice is well correlated with a number of the independent variables. From \autoref{Pairs3} it can be observed that some of the independent variables of interest also have high correlation with each other. An extreme case of correlated variables produces multicollinearity - a condition in which there is redundancy among the predictor variables (Perfect multicollinearity occurs when one predictor variable can be expressed as a linear combination of others.) The problem of multicollinearity is clear and should be addressed if necessary - variables should be removed until the multicollinearity is gone. 
+The earlier correlation plots show that the SalesPrice is well correlated with a number of the independent variables. In \autoref{Pairs3} it can be observed that some of the independent variables of interest also have high correlation with each other. An extreme case of correlated variables produces multicollinearity - a condition in which there is redundancy among the predictor variables (Perfect multicollinearity occurs when one predictor variable can be expressed as a linear combination of others.) The problem of multicollinearity is clear and should be addressed if necessary - variables should be removed until the multicollinearity is gone. 
 
 
 <!-- ```{r Pairs1, echo=FALSE} -->
@@ -433,8 +439,8 @@ The earlier correlation plots show that the SalesPrice is well correlated with a
 
 
 ## Summary
-Based on the above data exploration, it makes sense to use a reduced list of variables going forward in the creation of the models. 
-The following sets of data will be used in building the models:
+Based on the above data exploration, it made sense to use a reduced list of variables going forward in the creation of the models. 
+The following sets of data were used in building the models:
 
 ```{r Predictors, echo=TRUE}
 
@@ -446,7 +452,7 @@ charCols
 
 ```
 
-And then the prediction variable itself is SalePrice.
+Along with the prediction variable itself i.e. SalePrice.
 
 \newpage
 # Analysis and Model Creation
@@ -508,8 +514,9 @@ rmse_results[1:2,] %>%
 
 ###### $\color{white}{\text{Line Breaker hack!!}}$  
 
-## LASSO regression
-For the avoidance of multicollinearity, implementing LASSO regression (see appendix for background to LASSO) is not a bad idea. 
+## LASSO Regression
+For the avoidance of multicollinearity, implementing LASSO regression (see appendix [$\color{blue}{\text{(LASSO)}}$](#lasso) for background to LASSO) is not a bad idea. 
+
 
 Transferring the variables into the form of matrix, we can automate the selection of variables by implementing 'lars' method in Lars package.
 
@@ -574,6 +581,8 @@ rmse_results[1:4,] %>%
 Let's try training the model with an RF.   
 Let's use all the variables and see how things look, since randomforest does its own feature selection.
 
+(see appendix [$\color{blue}{\text{(Random Forest)}}$](#random_forest) for background to Random Forest).
+
 See the appendix for some background on the Random Forest process
 
 `r text_spec("Model",  color = "#d2691e", font_size= 10)`     
@@ -582,7 +591,7 @@ XXX
 `r text_spec("Prediction",  color = "#d2691e", font_size= 10)`     
 XXX
 
-```{r model_rf , fig.cap="Random Forest model",    echo=FALSE, message=FALSE}
+```{r plot_model_rf , fig.cap="\\label{plot_model_rf}Random Forest model",    echo=FALSE, message=FALSE}
 
 plot(model_rf)
 
@@ -704,49 +713,119 @@ Whilst the above analysis has already produced a lot of insights and a meaningfu
 # Appendix   
 The following sections provide some background to the analysis that was carried out for this report.   
 
-## Boruta Importance Analysis
-Re: Boruta: this paper  https://www.jstatsoft.org/index.php/jss/article/view/v036i11/v36i11.pdf    explains the underlying algorithm. This is a high-level outline of the algorithm:     
-1) A copy is made of each explanatory variable. The values in these copies are permuted to remove any correlation with the target variable. The copies are called Shadow variables.     
-2) A random forest model is fitted on this expanded data set.     
-3) For each variable (the original and Shadow) the Z-score of the loss in accuracy is calculated. The Z-score is the average loss divided by the standard deviation.     
-4) Keep track of the original attributes z-score that score higher than the maximum of z-score of the shadow attributes.     
+## Boruta Importance Analysis{#boruta}
+Earlier in this report, the R package Boruta was used to select all relevant variables from the House Price data set  [$\color{blue}{\text{(Kursa and Rudnicki, 2020)}}$](#references). This section gives a little background to the algorithm. 
 
-Repeat the above steps numerous times. Original attributes that are significantly--statistically--higher then the maximum z-score of shadow attributes are deemed relevant to the prediction. Attributes that are significantly below the maximum z-score of shadow attributes are deemed not relevant.
+The original article describes the R package Boruta, implementing a novel feature selection algorithm for finding all relevant variables. The algorithm is designed as a wrapper around a Random Forest classification algorithm. It iteratively removes the features which are proved by a statistical test to be less relevant than random probes. The Boruta package provides a convenient interface to the algorithm. 
 
-## LASSO Regression
-Explain what it is
+Feature selection is often an important step in applications of machine learning methods and there are good reasons for this. Modern data sets are often described with far too many variables for practical model building. Usually most of these variables are irrelevant to the classification, and obviously their relevance is not known in advance. There are several disadvantages of dealing with overlarge feature sets. One is purely technical - dealing with
+large feature sets slows down algorithms, takes too many resources and is simply inconvenient. Another is even more important - many machine learning algorithms exhibit a decrease of accuracy when the number of variables is significantly higher than optimal (Kohavi and John 1997). Therefore selection of the small (possibly minimal) feature set giving best possible classification results is desirable for practical reasons. This problem, known as minimal - optimal problem (There is a 2007 reference here) has been intensively studied and there are plenty of algorithms which were developed to reduce feature set to a manageable size.
 
-https://en.wikipedia.org/wiki/Lasso_(statistics)
+Nevertheless, this very practical goal shadows another very interesting problem - the identification of all attributes which are in some circumstances relevant for classification, the so-called all-relevant problem. Finding all relevant attributes, instead of only the non-redundant ones, may be very useful in itself. In particular, this is necessary when one is interested in understanding mechanisms related to the subject of interest, instead of merely building a black box predictive model. For example, when dealing with results of gene expression measurements in context of cancer, identification of all genes which are related to cancer is necessary for complete understanding of the process, whereas a minimal-optimal set of genes might be more useful as genetic markers. A good discussion outlining why finding all relevant attributes is important is given by Nilsson et al. (2007).
 
-https://www.statisticshowto.com/lasso-regression/
+The all-relevant problem of feature selection is more difficult than usual minimal-optimal one. One reason is that we cannot rely on the classification accuracy as the criterion for selecting the feature as important (or rejecting it as unimportant). The degradation of the classification accuracy, upon removal of the feature from the feature set, is sufficient to declare the feature important, but lack of this effect is not sufficient to declare it unimportant. One therefore needs another criterion for declaring variables important or unimportant. Moreover, one cannot use filtering methods, because the lack of direct correlation between a given feature and the decision is not a proof that this feature is not important in conjunction with the other
+features (Guyon and Elisseeff 2003). One is therefore restricted to wrapper algorithms, which are computationally more demanding than filters.
 
+In a wrapper method the classifier is used as a black box returning a feature ranking, therefore one can use any classifier which can provide the ranking of features. For practical reasons, a classifier used in this problem should be both computationally efficient and simple, possibly without user defined parameters.
 
-Page 159 and 278 of oreilly
+The current paper presents an implementation of the algorithm for finding all relevant features in the information system in a R (R Development Core Team 2010) package Boruta (available from the Comprehensive R Archive Network at http://CRAN.R-project.org/package=Boruta). The algorithm uses a wrapper approach built around a random forest (Breiman 2001) classifier (Boruta is a god of the forest in the Slavic mythology). The algorithm is an extension of the idea introduced by Stoppiglia, Dreyfus, Dubois, and Oussar (2003) to determine relevance by comparing the relevance of the real features to that of the random probes. Originally this idea was proposed in the context of filtering, whereas here it is used in the wrapper algorithm. In the remaining sections of this article firstly a short description of the algorithm is given, followed by the examples of its application on a real-world and artificial data set.
 
-## Random Forest
-Explain what a random forest is
+The following is a high-level outline of the algorithm:     
 
-https://en.wikipedia.org/wiki/Random_forest
+1. A copy is made of each explanatory variable. The values in these copies are permuted to remove any correlation with the target variable. The copies are called Shadow variables.   
 
-https://builtin.com/data-science/random-forest-algorithm
+2. A random forest model is fitted on this expanded data set.     
 
-Page 237 of the Practical Stats book - look at bagging and the key ideas
+3. For each variable (the original and Shadow) the Z-score of the loss in accuracy is calculated. The Z-score is the average loss divided by the standard deviation.
 
+4. Keep track of the original attributes z-score that score higher than the maximum of z-score of the shadow attributes.     
 
-## XGBoost
-https://machinelearningmastery.com/gentle-introduction-xgboost-applied-machine-learning/
-
-https://en.wikipedia.org/wiki/XGBoost
-
-270 of oreilly
-
-Explain what a XGBoost is
-https://xgboost.readthedocs.io/en/latest/index.html
-https://xgboost.readthedocs.io/en/latest/R-package/xgboostPresentation.html ->>>>> good intro
+5. Repeat the above steps numerous times. Original attributes that are significantly--statistically--higher then the maximum z-score of shadow attributes are deemed relevant to the prediction. Attributes that are significantly below the maximum z-score of shadow attributes are deemed not relevant.
 
 
-xgb.train: eXtreme Gradient Boosting Training
-https://www.rdocumentation.org/packages/xgboost/versions/1.4.1.1/topics/xgb.train
+## LASSO Regression{#lasso}
+In statistics and machine learning, lasso (least absolute shrinkage and selection operator; also Lasso or LASSO) is a regression analysis method that performs both variable selection and regularization in order to enhance the prediction accuracy and interpretability of the resulting statistical model. It was originally introduced in geophysics and later by Robert Tibshirani who coined the term. [$\color{blue}{\text{(Wikipedia)}}$](#references)
+
+Lasso was originally formulated for linear regression models. This simple case reveals a substantial amount about the estimator. These include its relationship to ridge regression and best subset selection and the connections between lasso coefficient estimates and so-called soft thresholding. It also reveals that (like standard linear regression) the coefficient estimates do not need to be unique if covariates are collinear.
+
+Though originally defined for linear regression, lasso regularization is easily extended to other statistical models including generalized linear models, generalized estimating equations, proportional hazards models, and M-estimators. Lasso's ability to perform subset selection relies on the form of the constraint and has a variety of interpretations including in terms of geometry, Bayesian statistics and convex analysis.
+
+*From Statistics How To* [$\color{blue}{\text{(From Statistics How To)}}$](#references)
+
+Lasso regression is a type of linear regression that uses shrinkage. Shrinkage is where data values are shrunk towards a central point, like the mean. The lasso procedure encourages simple, sparse models (i.e. models with fewer parameters). This particular type of regression is well-suited for models showing high levels of muticollinearity or when you want to automate certain parts of model selection, like variable selection/parameter elimination.
+
+The acronym “LASSO” stands for Least Absolute Shrinkage and Selection Operator.
+
+Lasso regression performs L1 regularization, which adds a penalty equal to the absolute value of the magnitude of coefficients. This type of regularization can result in sparse models with few coefficients; Some coefficients can become zero and eliminated from the model. Larger penalties result in coefficient values closer to zero, which is the ideal for producing simpler models. On the other hand, L2 regularization (e.g. Ridge regression) doesn’t result in elimination of coefficients or sparse models. This makes the Lasso far easier to interpret than the Ridge.
+
+Lasso solutions are quadratic programming problems. The goal of the algorithm is to minimize:
+
+$$\sum_{i=i}^{N} (y_{i} - \sum_{j}x_{i,j}\beta_{j})^2+\lambda\sum_{j=1}^{p}\mid\beta_{j}\mid$$
+
+Which is the same as minimizing the sum of squares with constraint $\sum\mid\beta_{j}\mid \le s$  . Some of the $\beta$s are shrunk to exactly zero, resulting in a regression model that is easier to interpret.
+
+A tuning parameter, $\lambda$, controls the strength of the L1 penalty. $\lambda$ is basically the amount of shrinkage:
+
+* When $\lambda$ = 0, no parameters are eliminated. The estimate is equal to the one found with linear regression.
+* As $\lambda$ increases, more and more coefficients are set to zero and eliminated (theoretically, when $\lambda$ = $\infty$, all coefficients are eliminated).
+* As $\lambda$ increases, bias increases.
+* As $\lambda$ decreases, variance increases.
+* If an intercept is included in the model, it is usually left unchanged.
+
+## Random Forest{#random_forest}
+Random forests are a very popular machine learning approach that addresses the shortcomings of decision trees using a clever idea. The goal is to improve prediction performance and reduce instability by averaging multiple decision trees (a forest of trees constructed with randomness). It has two features that help accomplish this.
+
+Random decision forests correct for decision trees' habit of overfitting to their training set. Random forests generally outperform decision trees, but their accuracy is lower than gradient boosted trees (see next section). However, data characteristics can affect their performance [$\color{blue}{\text{(Wikipedia)}}$](#references).
+
+Random forests are frequently used as "blackbox" models in businesses, as they generate reasonable predictions across a wide range of data while requiring little configuration.
+
+The first step is bootstrap aggregation or bagging. The general idea is to generate many predictors, each using regression or classification trees, and then forming a final prediction based on the average prediction of all these trees. To assure that the individual trees are not the same, bootstrapping is used to induce randomness. These two features combined explain the name: the bootstrap makes the individual trees randomly different, and the combination of trees is the forest. The specific steps are as follows.
+
+1. Build $B$ decision trees using the training set. We refer to the fitted models as $T_{1}, T_{2}, \dots , T_{B}$. We later explain how we ensure they are different.
+
+2. For every observation in the test set, form a prediction $\hat{y}_{j}$ using tree $T_{j}$.
+
+3. For continuous outcomes, form a final prediction with the average $\hat{y} = \frac{1}{B} \sum_{j=1}^{B} \hat{y}_{j}$. For categorical data classification, predict $\hat{y}$ with majority vote (most frequent class among $\hat{y}_{1}, \dots , \hat{y}_{T}$).
+
+So how do we get different decision trees from a single training set? For this, we use randomness in two ways which we explain in the steps below. Let $N$ be the number of observations in the training set. To create $T_{j}$, $j=1, \dots , B$ from the training set we do the following:
+
+1. Create a bootstrap training set by sampling $N$ observations from the training set with replacement. This is the first way to induce randomness.
+
+2. A large number of features is typical in machine learning challenges. Often, many features can be informative but including them all in the model may result in overfitting. The second way random forests induce randomness is by randomly selecting features to be included in the building of each tree. A different random subset is selected for each tree. This reduces correlation between trees in the forest, thereby improving prediction accuracy.
+
+As can be observed in \autoref{plot_model_rf} as more trees are added to the model, the error rate changes, the accuracy improves and with about 80 trees the accuracy stabilizes.
+
+Random forest performs better in all the examples we have considered. However, a disadvantage of random forests is that we lose interpretability. An approach that helps with interpretability is to examine variable importance. To define variable importance we count how often a predictor is used in the individual trees. You can learn more about variable importance in an advanced machine learning book109. The caret package includes the function varImp that extracts variable importance from any model in which the calculation is implemented. We give an example on how we use variable importance in the next section.
+
+
+
+
+
+
+## XGBoost (e$X$treme $G$radient $B$oosting){#xgb}
+### Background     
+Ensemble models have become a standard tool for predictive modeling [$\color{blue}{\text{(Bruce, Bruce and Gedeck, 2020)}}$](#references). Boosting is a general technique to create an ensemble of models. It was developed around the same time as bagging. Like bagging, boosting is most commonly used with decision trees. Despite their similarities, boosting takes a very different approach - one that comes with more bells and whistles. As a result, while bagging can be done with relatively little tuning, boosting requires much greater care in its application. If these two methods were cars, bagging could be considered a Honda Accord (reliable and steady), whereas boosting could be considered a Porsche (powerful but requires more care).
+
+In linear regression models, the residuals are often examined to see if the fit can be improved. Boosting takes this concept much further and fits a series of models, in which each successive model seeks to minimize the error of the previous model. Several variants of the algorithm are commonly use: Adaboost, gradient boosting and stochastic gradient boosting.
+
+The most widely used public domain software for boosting is XGBoost (and the one used in this report). It is an implementation of stochastic gradient boosting that is both computationally efficient and made up of many options/paramters. Two very important parameters are subsample, which controls the fraction of observations that should be sampled at each iteration, and eta, a shrinkage factor applied to $\alpha_{m}$ in the boosting algorithm.
+
+Using subsample makes boosting act like the random forest except that the sampling is done without replacement. The shrinkage parameter eta is helpful to prevent overfitting by reducing the change in the weights (a smaller change in the weights means the algorithm is less likely to overfit to the training set).
+
+### Summary
+* Boosting is a class of ensemble models based on fitting a sequence of models, with more weight given to records with large errors in successive rounds.
+* Stochastic gradient boosting is the most general type of boosting and offers the best performance. The most common form of stochastic gradient boosting uses tree models.
+* XGBoost is a popular and computationally efficient software package for stochastic gradient boosting; it is available in all common languages used in data science.
+* Boosting is prone to overfitting the data, and the hyperparameters need to be tuned to avoid this.
+* Regularization is one way to avoid overfitting by including a penalty term on the number of parameters ( e.g., tree size) in a model.
+* Cross-validation (see next section) is especially important for boosting due to the large number of hyperparameters that need to be set.
+
+### Tutorial
+The XGBoost documentation site [$\color{blue}{\text{(XGBoost Documentation)}}$](#references) provides further insights and tutorials on this very powerful tool.
+
+
+
+
 
 ## Cross Validation
 ### Background     
@@ -808,39 +887,45 @@ One way to improve the variance of the final estimate is to take more samples. T
 
 One version of this technique, at each fold, picks observations at random with replacement (which means the same observation can appear twice). This approach has some advantages and is generally referred to as the bootstrap.   
 
-XGB already used cross validation.
-
-
-
+XGBoost, used in this report, uses cross validation in its implementation.
 
 ## Data Source
-Update with real sources    
+The Ames Housing dataset, used in this report, was compiled by Dean De Cock for use in data science education. It's an alternative for data scientists looking for a modernized and expanded version of the often cited Boston Housing dataset. 
 
-Details of the data set used in this report:   
-https://grouplens.org/datasets/movielens/10m/
+The original dataset can be found under : [$\color{blue}{\text{https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data}}$](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data).
 
-Details of the institute providing the dataset:   
-https://grouplens.org/
+For the purposes of this report, a copy has been stored under the "data" directory of the project's github repository :  [$\color{blue}{\text{https://github.com/ostlerjo/CapstoneHousePrices.git}}$](https://github.com/ostlerjo/CapstoneHousePrices.git)
 
-## References
-Link to wikipedia???
+To be precise located here : [$\color{blue}{\text{https://github.com/ostlerjo/CapstoneHousePrices/tree/master/data}}$](https://github.com/ostlerjo/CapstoneHousePrices/tree/master/data)
 
-Galwey, N. (2014). Introduction to mixed modelling: Beyond regression and   analysis of variance.  
+## References{#references}
+Galwey, N. (2014). Introduction to mixed modelling: Beyond regression and analysis of variance.  
 
-Irizarry, R. A. (2020). Introduction to data science: Data analysis and    prediction algorithms with R. https://doi.org/10.1201/9780429341830
+Irizarry, R. A. (2020). Introduction to data science: Data analysis and prediction algorithms with R : [$\color{blue}{\text{https://doi.org/10.1201/9780429341830}}$](https://doi.org/10.1201/9780429341830).
+
+Kaggle : Your home for data science :  [ $\color{blue}{\text{https://www.kaggle.com }}$ ](https://www.kaggle.com )  
 
 Viswanathan, V. (2015). R data analysis cookbook: Over 80 recipes to help you breeze through your data analysis projects using R. 
 
-https://en.wikipedia.org/wiki/Random_forest
-https://builtin.com/data-science/random-forest-algorithm
+Kursa, M. and Rudnicki, W. (2020). Journal of Statistical Software - Feature Selection with the Boruta Package :  [$\color{blue}{\text{https://www.jstatsoft.org/index.php/jss/article/view/v036i11/v36i11.pdf}}$](https://www.jstatsoft.org/index.php/jss/article/view/v036i11/v36i11.pdf)
 
+LASSO statistics from Wikipedia : [ $\color{blue}{\text{https://en.wikipedia.org/wiki/Lasso }}$ ](https://en.wikipedia.org/wiki/Lasso_(statistics) )    
+
+Statistics How To : [$\color{blue}{\text{https://www.statisticshowto.com/lasso-regression/}}$](https://www.statisticshowto.com/lasso-regression/)
+
+Random Forest from Wikipedia :  [ $\color{blue}{\text{https://en.wikipedia.org/wiki/Random-forest }}$ ](https://en.wikipedia.org/wiki/Random_forest )
+        
+Peter Bruce, Andrew Bruce and Peter Gedeck (2020). Practical Statistics for Data Scientists.
+
+XGBoost Documentation : [$\color{blue}{\text{https://xgboost.readthedocs.io/en/latest/index.html}}$](https://xgboost.readthedocs.io/en/latest/index.html)
+
+XGBoost R Tutorial : [$\color{blue}{\text{https://xgboost.readthedocs.io/en/latest/R-package/xgboostPresentation.html}}$](https://xgboost.readthedocs.io/en/latest/R-package/xgboostPresentation.html) 
 
 ## Course Material
-Links to edX and HarvardX:   
-https://www.edx.org    
-https://www.edx.org/school/harvardx
+Links to edX and HarvardX :   
+[ $\color{blue}{\text{https://www.edx.org }}$ ](https://www.edx.org )     
+[ $\color{blue}{\text{https://www.edx.org/school/harvardx }}$ ](https://www.edx.org/school/harvardx )     
 
 Link to this course (including some of the theory quoted above):   
-https://www.edx.org/professional-certificate/harvardx-data-science
-
+[ $\color{blue}{\text{https://www.edx.org/professional-certificate/harvardx-data-science }}$ ](https://www.edx.org/professional-certificate/harvardx-data-science ) 
 

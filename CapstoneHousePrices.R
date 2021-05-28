@@ -543,7 +543,7 @@ model_lars_2 <- lars(Independent_variable_2 , Dependent_Variable_2 , type = 'las
 plot(model_lars_2)
 
 #The plot is messy as the quantity of variables is intimidating. Despite that, we can still use R to find out the model with least multicollinearity. The selection 
-#procedure is based on the value of Marrow's cp, an important indicator of multicollinearity. The prediction can be done by the script-chosen best step and RMSE can be used
+#procedure is based on the value of Mallow's Cp, an important indicator of multicollinearity. The prediction can be done by the script-chosen best step and RMSE can be used
 #to assess the model.
 best_step_2 <- model_lars_2$df[which.min(model_lars_2$Cp)]
 
@@ -652,7 +652,7 @@ bstSparse <-
 XGBtestingD <- xgb.DMatrix(data = XGBtestingSparse[,vars])
 
 #Column names must match the inputs EXACTLY
-#Make the prediction based on the half of the training data set aside
+#Make the prediction based on the portion  of the training data set aside
 prediction_XGB <- predict(bstSparse, XGBtestingD)
 
 #RMSE

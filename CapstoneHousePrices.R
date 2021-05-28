@@ -510,7 +510,7 @@ model_lars <- lars(Independent_variable , Dependent_Variable,type = 'lasso')
 plot(model_lars)
 
 #The plot is messy as the quantity of variables is intimidating. Despite that, we can still use R to find out the model with least multicollinearity. The selection 
-#procedure is based on the value of Marrow's cp, an important indicator of multicollinearity. The prediction can be done by the script-chosen best step and RMSE can be used
+#procedure is based on the value of Mallow's Cp, an important indicator of multicollinearity. The prediction can be done by the script-chosen best step and RMSE can be used
 #to assess the model.
 best_step <- model_lars$df[which.min(model_lars$Cp)]
 

@@ -668,8 +668,6 @@ rmse_results %>%
 
 
 
-
-
 \newpage
 # Conclusion
 Through the gradual increase in complexity of the models, the XGBoost algorithm produced an improvement of around 89% over the original model.

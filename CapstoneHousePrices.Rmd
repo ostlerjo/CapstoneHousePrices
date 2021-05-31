@@ -39,7 +39,7 @@ load(file = "CapstoneHousePrices.RData")
 
 \newpage
 # Abstract
-Data science has become the super-power behind the success of many businesses of today. These companies need and use data science approaches like machine learning to extract patterns, trends and other actionable information from large data sets  [$\color{blue}{\text{(Galwey, 2014)}}$](#references). In turn, companies use these findings to improve performance, grow and, perhaps most importantly, to provide better products and services to consumers [$\color{blue}{\text{(Irizarry, 2020)}}$](#references).
+Data science has become the super-power behind the success of many businesses today. These companies need and use data science approaches like machine learning to extract patterns, trends and other actionable information from large data sets  [$\color{blue}{\text{(Galwey, 2014)}}$](#references). In turn, companies use these findings to improve performance, grow and, perhaps most importantly, to provide better products and services to consumers [$\color{blue}{\text{(Irizarry, 2020)}}$](#references).
 
 Not surprisingly, prediction and recommendation systems are increasingly used by businesses to provide personalized insights to consumers. Often companies make competitions out of the challenge to stimulate ideas and of course produce a better, more workable and more dependable model.
 
@@ -72,7 +72,7 @@ The GitHub repository for this report can be found at : [$\color{blue}{\text{htt
 \newpage
 # Introduction
 ## Data Used
-The original data came from the publication Dean De Cock "Ames, Iowa: Alternative to the Boston Housing Data as an End of Semester Regression Project", Journal of Statistics Education, Volume 19, Number 3 (2011). 
+The original data came from the publication of Dean De Cock "Ames, Iowa: Alternative to the Boston Housing Data as an End of Semester Regression Project", Journal of Statistics Education, Volume 19, Number 3 (2011). 
 
 The data used in this report was obtained from kaggle.com.    
 
@@ -104,7 +104,7 @@ if(!require(kableExtra)) install.packages("kableExtra", repos = "http://cran.us.
 ```
 
 
-The following r libraries were used to generate the data, perform the analysis and create the algorithms detailed in this report:
+The following R libraries were used to generate the data, perform the analysis and create the algorithms detailed in this report:
 
 ```{r loading-libs, eval=TRUE, echo=TRUE,  message=FALSE}
 
@@ -141,7 +141,7 @@ Due to the way R treats variable names, three columns were mutated to put a dumm
 
 Secondly several columns had false NAs in them that would cause the code to give errors e.g. the column "Alley" had a set of NAs which in fact meant "No Alley". As a consequence, all of these types of values were explored and then updated to their "correct" values.
 
-Finally, a couple of numeric columns also had NAs when they should in fact have been 0. As a consequence, all of these types of values were updated to be 0 rather than NA.
+Finally, two numeric columns also had NAs when they should in fact have been 0s. As a consequence, all of these types of values were updated to be 0 rather than NA.
 
 ## Data Partitioning
 Two sets of data were available i.e. a train set and a test set. Since the data was originally going to be used in a competition to predict the Sale Prices, the test set provided did not have a Sale Price column. As a consequence for this project where predictive results needed to be reported, the train data set was used for training, testing and the final validation through partitioning.
@@ -252,7 +252,7 @@ After partitioning, the Final Validation data had `r iFinal` rows, the Testing d
 
 The training data covered properties built from `r old_prop` to `r new_prop` with Sale Prices ranging from as low as USD `r low_sale` to USD `r high_sale`. The training data captured actual sales from `r early_sale` to `r late_sale`.
 
-Of the `r cRaw -2` potential predictor columns, `r iChara` were characters and the remaining `r iNum` were numeric. Later on in the analysis, some of the key character variables wereconverted to numerical values to assist with the algorithm building.
+Of the `r cRaw -2` potential predictor columns, `r iChara` were characters and the remaining `r iNum` were numeric. Later on in the analysis, some of the key character variables were converted to numerical values to assist with the algorithm building.
 
 
 ```{r NumOfSalesPerNeighborhood, fig.cap="\\label{NumOfSalesPerNeighborhood}Location of Sales",     fig.width=5,  fig.height=3.333 ,   fig.align='left', echo=FALSE}
@@ -634,7 +634,7 @@ I would like to take the opportunity to thank the staff and other students at Ha
 
 Whilst I was aware of the topics of R, probability and regression from my former studies it has been many years since I have used them and the topics of wrangling and machine learning were completely new to me. They were topics that I thoroughly enjoyed learning albeit at a level that I know is just scratching the surface. I believe my data science journey has just begun...
 
-(Un)fortunately due to my current job situation, I was able to complete the course in a shorter than recommended period. I believe this was ultimately very beneficial to me and allowed me to keep a high level of focus. I'm not sure I would have managed to study so hard and maintain a full time job at the same time had the situation occurred!!
+(Un)fortunately due to my current job situation, I was able to complete the course in a shorter than recommended period. I believe this was ultimately very beneficial to me and allowed me to maintain a high level of focus. I'm not sure I would have managed to study so hard and keep a full time job at the same time had the situation occurred!!
 
 ## Limitations
 Along with the aforementioned slow PC, a relatively small data set (in terms of rows) might have had an impact on the results. Updating the data set to include sales from 2000 to 2005 and then from 2011 to 2020 would certainly benefit the process.
@@ -644,13 +644,13 @@ Aside from the limitations in data, there is also a limitation on the author's k
 ## Future Work
 Whilst the above analysis has already produced a lot of insights and a meaningful model, further investigations could be carried out along the following lines:   
 
-* Input Data
+* Input Data:
   + Extend the data to other areas of the country - e.g. different counties, different states etc.
   + Increase period of when sales occurred - e.g. 2000 to 2005 and/or 2011 to 2020
   + Speak with real estate agents to see if there are other predictors that should be incorporated
   + Is there a way to capture the "Realtor" effect i.e. do the realtors have an inside line on what drives the sale price?
   + Extend the data to include commercial property
-* Data Manipulation
+* Data Manipulation:
   + Combine certain predictors
   + Give more/less weight to certain predictors
   + Remove extreme predictor values and sale prices
@@ -736,7 +736,7 @@ Getting different decision trees from a single training is achieved through the 
 
 2. A large number of features is typical in machine learning challenges. Often, many features can be informative but including them all in the model may result in overfitting. The second way random forests induce randomness is by randomly selecting features to be included in the building of each tree. A different random subset is selected for each tree. This reduces correlation between trees in the forest, thereby improving prediction accuracy.
 
-As was observed in \autoref{plot_model_rf} as more trees were added to the random forest model for house prices, the error rate changed, the accuracy improved and with about 80 trees the accuracy stabilized.
+As is observed in \autoref{plot_model_rf} as more trees were added to the random forest model for house prices, the error rate changed, the accuracy improved and with about 80 trees the accuracy stabilized.
 
 Random forests often perform well in most situations. However, a disadvantage of random forests is the loss of interpretability. An approach that helps with interpretability is to examine variable importance. To define variable importance a count is kept of how often a predictor is used in the individual trees. The caret package in R includes the function varImp that extracts variable importance from any model in which the calculation is implemented.
 
